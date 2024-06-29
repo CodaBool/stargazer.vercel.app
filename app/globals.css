@@ -9,7 +9,7 @@ body {
 
 #map-container {
   cursor: grab;
-  height: 90vh;
+  height: 96vh;
   overflow: hidden;
   background: black;
 }

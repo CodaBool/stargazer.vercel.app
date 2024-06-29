@@ -28,7 +28,7 @@ export default function combined() {
       <Tooltip>{content}</Tooltip>
       {size?.length 
         ? <MapChart setContent={setContent} size={size} />
-        : <Skeleton className="w-[80vw] h-[80vh] m-auto mt-10" />
+        : <Skeleton className="w-[80vw] h-[70vh] m-auto mt-10" />
       }
     </div>
   )
@@ -85,8 +85,8 @@ const MapChart = memo(({ setContent, size }) => {
                       setContent("")
                     }}
                     style={{
-                      default: { fill },
-                      hover: { fill: "purple" },
+                      default: { fill, outline: "none" },
+                      hover: { fill: "purple", outline: "none" },
                       pressed: { fill: "red" },
                     }}
                   />

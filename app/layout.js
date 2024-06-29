@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
         <TooltipProvider>
           {children}
         </TooltipProvider>
-        <footer className="bottom-0 w-full p-8" style={{borderTop: '2px solid grey'}}>
+        <footer className="bottom-0 w-full p-2" style={{ background: 'black', borderTop: '2px solid grey', position: 'absolute', bottom: '0'}}>
           <p className="text-center text-ring" style={{color: 'white'}}>MIT License, free and open source</p>
         </footer>
       </body>
