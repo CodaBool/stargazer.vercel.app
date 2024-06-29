@@ -13,8 +13,9 @@
 
 # Process
 - https://www.figma.com -> svg
-- https://atticus.dev/svg-plotter/demo/index.html -> geojson (30000000 width) [THIS IS TOO BIG ACTUALLY]
-- https://mapshaper.org -> topojson/clipboard
+- https://atticus.dev/svg-plotter/demo/index.html -> geojson (22000000 width)
+- https://geojson.io -> do your geo work here, export topojson to mapshaper
+- https://mapshaper.org -> export individual layer to clipboard and paste topojson to data.js
 
 # maps
 - Karma Reef Sector http://madletter.net/rpg/lancer/lancer-map-2.jpg

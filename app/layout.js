@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
           {children}
         </TooltipProvider>
         <footer className="bottom-0 w-full p-8">
-          <p className="text-center text-ring">These are community run maps </p>
+          <p className="text-center text-ring" style={{color: 'white'}}>MIT License, free and open source</p>
         </footer>
       </body>
     </html>
