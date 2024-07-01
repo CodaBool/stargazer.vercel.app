@@ -74,7 +74,6 @@ const MapChart = memo(({ setContent, size }) => {
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    // fill={fill}
                     stroke={stroke}
                     strokeWidth={1}
                     onMouseEnter={() => {
@@ -96,23 +95,25 @@ const MapChart = memo(({ setContent, size }) => {
           }
         </Geographies>
         {points.objects.points.geometries.map(({ coordinates, properties, type }, index) => {
-          if (type === "Point") return (
-            <Marker coordinates={coordinates} key={index}>
-              {properties.gate
-                ? <rect width="2" height="2" fill="purple" stroke="black" strokeWidth={.5} />
-                : <circle r={1} fill="grey" stroke="black" strokeWidth={.5} />
-              }
-              {properties?.name && 
-                <text
-                  textAnchor="middle"
-                  y={9}
-                  style={{ fontFamily: "system-ui", fill: "white", fontSize: ".3em", textShadow: "0 0 5px black" }}
-                >
-                  {properties.name}
-                </text>
-              }
-            </Marker>
-          )
+          if (type === "Point") {
+            return (
+              <Marker coordinates={coordinates} key={index}>
+                {properties.gate
+                  ? <rect width="2" height="2" fill="purple" stroke="black" strokeWidth={.5} />
+                  : <circle r={1} fill="grey" stroke="black" strokeWidth={.5} />
+                }
+                {(properties?.name && !properties?.crowded) && 
+                  <text
+                    textAnchor="middle"
+                    y={properties?.gate ? 9 : 3}
+                    style={{ fontFamily: "system-ui", fill: "white", fontSize: properties?.gate ? ".3em" : ".1em", textShadow: "0 0 5px black" }}
+                  >
+                    {properties.name}
+                  </text>
+                }
+              </Marker>
+            )
+          }
         })}
       </ZoomableGroup>
     </ComposableMap>

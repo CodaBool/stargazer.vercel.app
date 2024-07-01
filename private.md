@@ -22,3 +22,7 @@
 - Shasta http://madletter.net/rpg/lancer/shasta_bright.jpg
 - life accurate map https://www.reddit.com/r/LancerRPG/comments/16r61x4/galactic_map_of_union_by_me
 - canon info https://www.worldanvil.com/w/the-third-committee3A-lancer-billytherex/a/union-territory-location
+
+## details
+- Cradle blink gate position https://www.reddit.com/r/LancerRPG/comments/je5nzl/comment/gcjzcbb
+- cmdk https://github.com/pacocoursey/cmdk
