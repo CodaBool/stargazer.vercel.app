@@ -14,9 +14,11 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar"
+import { Heart, Github, Copyright, History } from "lucide-react"
 import Dialog from './dialog'
+import Contribute from './contribute'
 
-export default function Menu() {
+export default function Menu({panTo}) {
   return (
     <Menubar style={{color: 'white'}}>
       <MenubarMenu>
@@ -45,43 +47,30 @@ export default function Menu() {
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
-        <MenubarTrigger>Search</MenubarTrigger>
+        <Dialog panTo={panTo} />
+      </MenubarMenu>
+      <MenubarMenu>
+        <MenubarTrigger><Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute</MenubarTrigger>
         <MenubarContent>
-          <Dialog />
+          <Contribute text="Edit existing content" />
+          <MenubarSeparator />
+          <Contribute text="Add a new content" />
+          <MenubarSeparator />
+          <Contribute text="Create a new map" />
+          <MenubarSeparator />
+          <Contribute text="Make a suggestion" />
+          <MenubarSeparator />
+          <Contribute text="Make a fork" />
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
-        <MenubarTrigger>View</MenubarTrigger>
+        <MenubarTrigger><Github size={16} className="relative top-[1px] pe-[2px]" />  About</MenubarTrigger>
         <MenubarContent>
-          <MenubarCheckboxItem>Always Show Bookmarks Bar</MenubarCheckboxItem>
-          <MenubarCheckboxItem checked>
-            Always Show Full URLs
-          </MenubarCheckboxItem>
+          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><Copyright size={16} className="inline" /> License</a></MenubarItem>
           <MenubarSeparator />
-          <MenubarItem inset>
-            Reload <MenubarShortcut>⌘R</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem disabled inset>
-            Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
-          </MenubarItem>
+          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps" target="_blank"><Github size={16} className="inline" /> Source Code</a></MenubarItem>
           <MenubarSeparator />
-          <MenubarItem inset>Toggle Fullscreen</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset>Hide Sidebar</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger>Profiles</MenubarTrigger>
-        <MenubarContent>
-          <MenubarRadioGroup value="benoit">
-            <MenubarRadioItem value="andy">Andy</MenubarRadioItem>
-            <MenubarRadioItem value="benoit">Benoit</MenubarRadioItem>
-            <MenubarRadioItem value="Luis">Luis</MenubarRadioItem>
-          </MenubarRadioGroup>
-          <MenubarSeparator />
-          <MenubarItem inset>Edit...</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset>Add Profile...</MenubarItem>
+          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><History size={16} className="inline" /> Version History</a></MenubarItem>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>

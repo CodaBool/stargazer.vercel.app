@@ -10,6 +10,8 @@
 - shadcn https://ui.shadcn.com/docs/components/tooltip
 - https://jeffpaine.github.io/geojson-topojson/
 - json minify https://codebeautify.org/jsonminifier
+- icons https://lucide.dev/icons
+- tailwind cheatsheet https://nerdcave.com/tailwind-cheat-sheet
 
 # Process
 - https://www.figma.com -> svg
