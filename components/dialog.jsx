@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react"
 import { Search } from "lucide-react"
 import { isMobile } from '@/lib/utils.js'
 
-export default function DialogBtn({panTo}) {
+export default function DialogBtn({ zoom, width, height, svg, projection }) {
   const [open, setOpen] = useState()
   const btn = useRef(null)
   const mobile = isMobile()
@@ -35,14 +35,14 @@ export default function DialogBtn({panTo}) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="ghost" ref={btn} onClick={() => setOpen(true)}><Search size={16} className="relative top-[1px]" /> Search</Button>
-      <DialogContent className="sm:max-w-[500px]"  style={{color: 'white'}}>
+      <DialogContent className="sm:max-w-[500px]" style={{ color: 'white' }}>
         <DialogHeader>
           <DialogTitle>Search the Map</DialogTitle>
           <DialogDescription>
             {!mobile && "You can open this search at anypoint by pressing Space."}
           </DialogDescription>
         </DialogHeader>
-        <SearchBox panTo={panTo} setOpen={setOpen} />
+        <SearchBox setOpen={setOpen} zoom={zoom} width={width} height={height} svg={svg} projection={projection} />
       </DialogContent>
     </Dialog>
   )

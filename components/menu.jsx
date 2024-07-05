@@ -18,9 +18,9 @@ import { Heart, Github, Copyright, History } from "lucide-react"
 import Dialog from './dialog'
 import Contribute from './contribute'
 
-export default function Menu({panTo}) {
+export default function Menu({ width, height, zoom, svg, projection }) {
   return (
-    <Menubar style={{color: 'white'}}>
+    <Menubar style={{ color: 'white' }}>
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
@@ -47,7 +47,7 @@ export default function Menu({panTo}) {
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
-        <Dialog panTo={panTo} />
+        <Dialog zoom={zoom} width={width} height={height} svg={svg} projection={projection} />
       </MenubarMenu>
       <MenubarMenu>
         <MenubarTrigger><Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute</MenubarTrigger>

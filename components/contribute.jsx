@@ -8,13 +8,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-export default function Contribute({path, text}) {
+export default function Contribute({ path, text }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" className="w-full text-left ps-4 h-8 max-w-[12em]">{text}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]"  style={{color: 'white'}}>
+      <DialogContent className="sm:max-w-[500px]" style={{ color: 'white' }}>
         <DialogHeader>
           <DialogTitle>Want to help improve this?</DialogTitle>
           <DialogDescription>

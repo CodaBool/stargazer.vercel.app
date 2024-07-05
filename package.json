@@ -12,21 +12,35 @@
     "@radix-ui/react-menubar": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
-    "@radix-ui/react-tooltip": "^1.1.1",
+    "@radix-ui/react-tooltip": "^1.1.2",
+    "@visx/drag": "^3.3.0",
+    "@visx/event": "^3.3.0",
+    "@visx/geo": "^3.5.0",
+    "@visx/point": "^3.3.0",
+    "@visx/responsive": "^3.10.2",
+    "@visx/scale": "^3.5.0",
+    "@visx/tooltip": "^3.3.0",
+    "@visx/voronoi": "^3.3.0",
+    "@visx/zoom": "^3.3.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
-    "lucide-react": "^0.396.0",
+    "d3": "^7.9.0",
+    "d3-geo": "^3.1.1",
+    "lucide-react": "^0.400.0",
     "next": "14.2.4",
     "react": "^18",
     "react-dom": "^18",
     "react-simple-maps": "^3.0.0",
     "react-tooltip": "4.5.1",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "topojson-client": "^3.1.0",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "postcss": "^8",
-    "tailwindcss": "^3.4.1"
+    "prettier": "3.3.2",
+    "tailwindcss": "^3.4.4"
   }
 }
