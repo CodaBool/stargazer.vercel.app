@@ -30,7 +30,7 @@ const scale = 400
 const center = [-80, 40]
 
 function useScreen() {
-  if (typeof window === 'undefined') return { width: 1200, height: 1200 }
+  // if (typeof window === 'undefined') return null
   const [screenSize, setScreenSize] = useState({ width: window.innerWidth, height: window.innerHeight })
   useEffect(() => {
     const handleResize = () => {
@@ -41,7 +41,7 @@ function useScreen() {
   }, [])
 
   return ({
-    // update if menubar size changes
+    // update if menubar size changes (it's 40px)
     height: screenSize.height - 40,
     width: screenSize.width,
   })
@@ -123,7 +123,7 @@ export default function page() {
   const [drawerContent, setDrawerContent] = useState()
 
   useEffect(() => {
-    if ((!svgRef.current || !zoomRef.current || !projectionRef.current) || mobile) return
+    if ((!svgRef.current || !zoomRef.current || !projectionRef.current) || mobile || !screen) return
     if (screen.width === screen.width && screen.height === screen.height) return
     // cradle
     const [x, y] = projectionRef.current([-78, 42])
@@ -300,6 +300,8 @@ export default function page() {
     zoomRef.current = zoom
     svg.call(zoom)
   }, [])
+
+  // if (!screen) return <div>Loading...</div >
 
   return (
     <>
