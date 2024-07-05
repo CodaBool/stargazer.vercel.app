@@ -35,3 +35,14 @@
 ## details
 - Cradle blink gate position https://www.reddit.com/r/LancerRPG/comments/je5nzl/comment/gcjzcbb
 - cmdk https://github.com/pacocoursey/cmdk
+<<<<<<< HEAD
+=======
+
+
+# laptop dev
+- https://www.prisma.io/docs/orm/prisma-schema/overview
+- example small https://www.prisma.io/nextjs
+- guide https://vercel.com/guides/nextjs-prisma-postgres
+- next-auth requirements
+- example full https://github.com/prisma/prisma-examples/blob/latest/typescript/rest-nextjs-api-routes-auth/prisma/schema.prisma
+>>>>>>> 92f4f1e273d55f4444136c51d212bd2007f67097
