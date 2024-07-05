@@ -5,48 +5,140 @@ import * as topojson from 'topojson-client'
 import * as d3 from 'd3'
 // import { create } from 'zustand'
 import { geography, points } from "./data.js"
+import { isMobile } from '@/lib/utils.js'
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 const world = topojson.feature(geography, geography.objects.collection)
 const pointsGeo = topojson.feature(points, points.objects.collection)
-
-const width = 1200
-const height = 1200
 const scale = 400
 const center = [-80, 40]
 
+function useScreen() {
+  if (typeof window === 'undefined') return { width: 1200, height: 1200 }
+  const [screenSize, setScreenSize] = useState({ width: window.innerWidth, height: window.innerHeight })
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return ({
+    // update if menubar size changes
+    height: screenSize.height - 40,
+    width: screenSize.width,
+  })
+}
+
+const Tooltip = ({ name, type, crowded, faction, destroyed }) => {
+  return (
+    <div className="map-tooltip" style={{ border: "1px solid red", position: "absolute", color: 'white', backgroundColor: 'black', padding: '0.5em', border: '1px dashed gray', borderRadius: '12px', visibility: 'hidden' }}>
+      <h3 className='font-bold text-center pb-2'>{name}</h3 >
+      <p>Type: {type}</p>
+      {/* <p>crowded: {crowded ? 'true' : 'false'}</p> */}
+      <p>faction: {faction ? faction : 'none'}</p>
+      <p>destroyed: {destroyed ? 'true' : 'false'}</p>
+    </div>
+  );
+};
+
+const DrawContent = ({ locations }) => {
+
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '1rem' }}>
+      {locations?.map(location => {
+        return (
+          <Card key={location.name}>
+            <CardHeader>
+              <CardTitle>{location.name}</CardTitle>
+              <CardDescription>Placeholder</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Type: {location.type}</p>
+              {/* <p>crowded: {location.crowded ? 'true' : 'false'}</p> */}
+              <p>faction: {location.faction ? location.faction : 'none'}</p>
+              <p>destroyed: {location.destroyed ? 'true' : 'false'}</p>
+            </CardContent>
+            {/* <CardFooter>
+              <p>Placeholder</p>
+            </CardFooter> */}
+          </Card >
+        )
+      })}
+    </div>
+  );
+};
+
 // TODO:
-// - make the tooltip more intesting
 // - add contribution pages
-// - add export to file option
-// - make 100% of screen
-// - make mobile compatible
+
+function getColor({ name, type }, stroke) {
+  if (stroke) {
+    if (type === "cluster") return "rgba(39, 83, 245, 0.08)";
+    if (name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,1)";
+    if (name === "Harrison Armory") return "rgba(99, 0, 128, 1)";
+    if (name === "IPS-N") return "rgba(128, 0, 0, .9)";
+    if (name === "Union Coreworlds") return "rgba(245, 39, 39, 0.1)"
+    if (type === "territory") return "rgba(255, 255, 255, 0.2)";
+    return "black";
+  } else {
+    // fill
+    if (type === "cluster") return "rgba(39, 122, 245, 0.1)";
+    if (name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,.7)";
+    if (name === "Harrison Armory") return "rgba(99, 0, 128, .8)";
+    if (name === "IPS-N") return "rgba(128, 0, 0, .8)";
+    if (name === "Union Coreworlds") return "rgba(245, 81, 39, 0.1)"
+    if (type === "territory") return "rgba(255, 255, 255, 0.15)";
+    return "lightgray";
+  }
+}
 
 export default function page() {
   const svgRef = useRef(null)
   const gRef = useRef(null)
   const zoomRef = useRef(null)
   const projectionRef = useRef(null)
+  const screen = useScreen()
+  const mobile = isMobile()
+  const [tooltip, setTooltip] = useState()
+  const [drawerOpen, setDrawerOpen] = useState()
+  const [drawerContent, setDrawerContent] = useState()
+
+  useEffect(() => {
+    if ((!svgRef.current || !zoomRef.current || !projectionRef.current) || mobile) return
+    if (screen.width === screen.width && screen.height === screen.height) return
+    // cradle
+    const [x, y] = projectionRef.current([-78, 42])
+    console.log("resize event, zoom to", Math.floor(x), Math.floor(y))
+    const transform = d3.zoomIdentity.translate(screen.width / 2 - x, screen.height / 2 - y).scale(1)
+    d3.select(svgRef.current).transition().duration(750).call(zoomRef.current.transform, transform)
+  }, [screen])
 
   useEffect(() => {
     const svg = d3.select(svgRef.current)
     const g = d3.select(gRef.current)
 
-    const projection = d3.geoMercator().scale(scale).center(center).translate([width / 2, height / 2])
+    const projection = d3.geoMercator().scale(scale).center(center).translate([screen.width / 2, screen.height / 2])
     const pathGenerator = d3.geoPath().projection(projection)
     projectionRef.current = projection
-
-    // TODO: can move these styles into the map-tooltip class
-    const tooltip = d3.select("body").append("div")
-      .style("position", "absolute")
-      .style("color", "white")
-      .style("background-color", "black")
-      .style("border", "1px dashed gray")
-      .style("padding", ".5em")
-      .style("font-weight", "bold")
-      .style("border-radius", "12px")
-      .style("font-size", "1.4em")
-      .style("visibility", "hidden")
-      .attr("class", "map-tooltip")
 
     // Territory SVG Polygons
     g.selectAll('.country')
@@ -55,40 +147,39 @@ export default function page() {
       .attr('class', 'country')
       .attr('d', pathGenerator)
       .attr('fill', d => {
-        if (d.properties.type === "cluster") return "rgba(39, 122, 245, 0.1)";
-        if (d.properties.name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,.7)";
-        if (d.properties.name === "Harrison Armory") return "rgba(99, 0, 128, .8)";
-        if (d.properties.name === "IPS-N") return "rgba(128, 0, 0, .8)";
-        if (d.properties.name === "Union Coreworlds") return "rgba(245, 81, 39, 0.1)"
-        if (d.properties.type === "territory") return "rgba(255, 255, 255, 0.15)";
-        return "lightgray";
+        return getColor(d.properties, false)
       })
       .attr('stroke', d => {
-        if (d.properties.type === "cluster") return "rgba(39, 83, 245, 0.08)";
-        if (d.properties.name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,1)";
-        if (d.properties.name === "Harrison Armory") return "rgba(99, 0, 128, 1)";
-        if (d.properties.name === "IPS-N") return "rgba(128, 0, 0, .9)";
-        if (d.properties.name === "Union Coreworlds") return "rgba(245, 39, 39, 0.1)"
-        if (d.properties.type === "territory") return "rgba(255, 255, 255, 0.2)";
-        return "black";
+        return getColor(d.properties, true)
       })
       .on("mouseover", (e, d) => {
-        tooltip.html(d.properties.name)
-          .style("top", (e.pageY - 100) + "px")
-          .style("left", (e.pageX - tooltip.node().offsetWidth / 2) + "px")
-          .style("visibility", "visible")
-
+        d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.3)')
+        d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .35)')
+        setTooltip(d.properties)
+        const tt = document.querySelector(".map-tooltip")
+        tt.style.visibility = "visible"
+        tt.style.top = (e.pageY + 50) + "px"
+        tt.style.left = (e.pageX - tt.offsetWidth / 2) + "px"
       })
-      .on("click", (event, d) => {
+      .on("click", (e, d) => {
+        setDrawerOpen()
+        if (mobile) return
         const [x, y] = pathGenerator.centroid(d)
         console.log("moving to territory", d.properties.name)
-        const transform = d3.zoomIdentity.translate(width / 2 - x * 3, height / 2 - y * 3).scale(3)
+        const transform = d3.zoomIdentity.translate(screen.width / 2 - x * 3, screen.height / 2 - y * 3).scale(3)
         svg.transition().duration(750).call(zoomRef.current.transform, transform)
       })
-      .on("mouseout", () => tooltip.style("visibility", "hidden"))
+      .on("mouseout", (e, d) => {
+        d3.select(e.currentTarget).attr('fill', getColor(d.properties, false))
+        d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
+        setTooltip()
+        document.querySelector(".map-tooltip").style.visibility = "hidden"
+      })
       .on("mousemove", e => {
-        tooltip.style("top", (e.pageY - 100) + "px")
-          .style("left", (e.pageX - tooltip.node().offsetWidth / 2) + "px")
+        const tt = document.querySelector(".map-tooltip")
+        tt.style.visibility = "visible"
+        tt.style.top = (e.pageY + 50) + "px"
+        tt.style.left = (e.pageX - tt.offsetWidth / 2) + "px"
       })
 
 
@@ -121,19 +212,38 @@ export default function page() {
       .attr('height', d => d.properties.type === 'gate' ? 10 : null)
       .attr('fill', d => d.properties.type === 'gate' ? 'teal' : 'slategray')
       .attr('stroke', 'black')
-      .on("click", (event, d) => {
+      .on("click", (e, d) => {
+
+        // TODO: find way to keep drawer open if already open and clicking on another point
+        const drawerOpenReal = document.querySelector(".map-sheet")?.getAttribute("data-state") || false
+        console.log("drawer open", drawerOpenReal)
+
+
+        const locations = pointsGeo.features.filter(p => {
+          return Math.sqrt(
+            Math.pow(p.geometry.coordinates[0] - d.geometry.coordinates[0], 2) +
+            Math.pow(p.geometry.coordinates[1] - d.geometry.coordinates[1], 2)
+          ) <= 1
+        }).map(p => p.properties)
+        setDrawerContent({ locations, coordinates: d.geometry.coordinates })
+        setDrawerOpen(true)
+        if (mobile) return
         const [x, y] = projection(d.geometry.coordinates)
         console.log("moving to point", d.properties.name)
-        const transform = d3.zoomIdentity.translate(width / 2 - x * 3, height / 2 - y * 3).scale(3)
+        const transform = d3.zoomIdentity.translate(screen.width / 2 - x * 3, screen.height / 2 - y * 3 - 200).scale(3)
         svg.transition().duration(750).call(zoomRef.current.transform, transform)
       })
       .on("mouseover", (e, d) => {
-        tooltip.html(d.properties.name)
-          .style("top", (e.pageY - 100) + "px")
-          .style("left", (e.pageX - tooltip.node().offsetWidth / 2) + "px")
-          .style("visibility", "visible")
+        setTooltip(d.properties)
+        const tt = document.querySelector(".map-tooltip")
+        tt.style.visibility = "visible"
+        tt.style.top = (e.pageY + 50) + "px"
+        tt.style.left = (e.pageX - tt.offsetWidth / 2) + "px"
       })
-      .on("mouseout", () => tooltip.style("visibility", "hidden"))
+      .on("mouseout", () => {
+        setTooltip()
+        document.querySelector(".map-tooltip").style.visibility = "hidden"
+      })
 
     // Add text labels for points
     g.selectAll('.point-label')
@@ -157,7 +267,7 @@ export default function page() {
     // All zoom and pan events
     const zoom = d3.zoom()
       .scaleExtent([1, 8])
-      .translateExtent([[-110, -110], [width + 110, height + 110]])
+      .translateExtent([[-scale * 1.5, -scale * 1.5], [screen.width + scale * 1.5, screen.height + scale * 1.5]])
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
         g.selectAll('.country-label').style('opacity', d => {
@@ -193,8 +303,21 @@ export default function page() {
 
   return (
     <>
-      <Menubar zoom={zoomRef} width={width} height={height} svg={svgRef} projection={projectionRef} />
-      <svg ref={svgRef} width={width} height={height} style={{ border: '1px solid grey' }}>
+      <Menubar zoom={zoomRef} width={screen.width} height={screen.height} svg={svgRef} projection={projectionRef} />
+      <Tooltip {...tooltip} />
+      <Sheet onOpenChange={setDrawerOpen} open={drawerOpen} modal={false} style={{ color: 'white' }} >
+        <SheetContent side="bottom" style={{ maxHeight: '50vh', overflowY: 'auto' }} className="map-sheet">
+          <SheetHeader style={{ color: 'white' }}>
+            <SheetTitle>{drawerContent?.coordinates ? `x: ${Math.floor(drawerContent.coordinates[0])}, y: ${Math.floor(drawerContent.coordinates[1])}` : 'unknown'}</SheetTitle>
+            <SheetDescription style={{ margin: '.2em' }}>
+              placeholder
+            </SheetDescription >
+          </SheetHeader >
+          <DrawContent {...drawerContent} />
+        </SheetContent >
+      </Sheet >
+
+      <svg ref={svgRef} width={screen.width} height={screen.height}>
         <g ref={gRef}></g>
       </svg>
     </>

@@ -17,6 +17,7 @@ import {
 import { Heart, Github, Copyright, History } from "lucide-react"
 import Dialog from './dialog'
 import Contribute from './contribute'
+import Link from "next/link"
 
 export default function Menu({ width, height, zoom, svg, projection }) {
   return (
@@ -25,25 +26,15 @@ export default function Menu({ width, height, zoom, svg, projection }) {
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
           <MenubarItem>
-            New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+            <Link href="/points.topojson" target="_blank" download>Download Points Topojson</Link>
           </MenubarItem>
           <MenubarItem>
-            New Window <MenubarShortcut>⌘N</MenubarShortcut>
+            <Link href="/polygons.topojson" target="_blank" download>Download Polygon Topojson</Link>
           </MenubarItem>
-          <MenubarItem disabled>New Incognito Window</MenubarItem>
           <MenubarSeparator />
-          <MenubarSub>
-            <MenubarSubTrigger>Share</MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarItem>Email link</MenubarItem>
-              <MenubarItem>Messages</MenubarItem>
-              <MenubarItem>Notes</MenubarItem>
-            </MenubarSubContent>
-          </MenubarSub>
-          <MenubarSeparator />
-          <MenubarItem>
-            Print... <MenubarShortcut>⌘P</MenubarShortcut>
-          </MenubarItem>
+          <MenubarItem className="text-gray-500">
+            Create embed
+          </MenubarItem >
         </MenubarContent>
       </MenubarMenu>
       <MenubarMenu>
