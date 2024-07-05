@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@prisma/client": "5.16.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-menubar": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.0",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "postcss": "^8",
+    "prisma": "^5.16.1",
     "tailwindcss": "^3.4.1"
   }
 }
