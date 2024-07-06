@@ -1,7 +1,7 @@
 # 🚧 Under Active Development
 > expect things to change drastically until the end of 2024
 
-# community VTT RPG maps
+# 🗺️ Community VTT RPG maps
 > A spot for any RPG community to create accurate maps and keep them up to date.
 
 ### Why?
@@ -16,11 +16,10 @@ This is because the project will release a free TopoJSON.
 This is a common standard for map making in real world applications.
 However, it can also be useful for fictional maps.
 
-With this data, it becomes easier to make a accurate stylized UI for any map.
-Just pick up [d3-geo](https://observablehq.com/collection/@d3/d3-geo) or one of the many tools which can interpret the TopoJSON.
-Then write your UI using the the accurate SVGs this will produce.
+I will however, be creating my own stylized version of each map. This won't be the focus of the project but should be generally usable.
 
-# Which Maps
-I will be focusing on `Lancer` and `Alien` but any community can make a PR to be added to the collection.
+If you want create your own map. Or just make general use of the TopoJSON I'd recommend picking up [d3-geo](https://observablehq.com/collection/@d3/d3-geo). Then start by looking at my code as an example.
 
-Then reap the benefits of the free published TopoJSON data.
+## 📅 Upcoming
+
+I will be focusing on `Lancer` and then maybe `Alien` but any community can open an issue on the issues tab and begin a discussion on adding a new map.

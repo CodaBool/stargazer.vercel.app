@@ -1,12 +1,5 @@
-# General
-- compare with base d3-geo
-- switch to visx react library (@visx/geo & @visx/zoom)
-  - example https://airbnb.io/visx/geo-custom
-  - find way to highlight on hover
-  - find way to tooltip -> @visx/tooltip
-
-- markershttps://codesandbox.io/p/sandbox/ecstatic-babbage-yvgmp?file=%2FExample.tsx%3A71%2C47
-- visx docs https://airbnb.io/visx/docs/geo#Mercator
+# TODO
+- contribution pages
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
@@ -35,14 +28,10 @@
 ## details
 - Cradle blink gate position https://www.reddit.com/r/LancerRPG/comments/je5nzl/comment/gcjzcbb
 - cmdk https://github.com/pacocoursey/cmdk
-<<<<<<< HEAD
-=======
-
 
 # laptop dev
 - https://www.prisma.io/docs/orm/prisma-schema/overview
 - example small https://www.prisma.io/nextjs
 - guide https://vercel.com/guides/nextjs-prisma-postgres
-- next-auth requirements
+- next-auth requirements https://authjs.dev/getting-started/adapters/prisma#schema
 - example full https://github.com/prisma/prisma-examples/blob/latest/typescript/rest-nextjs-api-routes-auth/prisma/schema.prisma
->>>>>>> 92f4f1e273d55f4444136c51d212bd2007f67097

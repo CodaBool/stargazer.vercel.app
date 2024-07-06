@@ -85,10 +85,7 @@ const DrawContent = ({ locations }) => {
       })}
     </div>
   );
-};
-
-// TODO:
-// - add contribution pages
+}
 
 function getColor({ name, type }, stroke) {
   if (stroke) {

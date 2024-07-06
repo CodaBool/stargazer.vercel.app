@@ -1,25 +1,47 @@
 'use client'
 import {
   Menubar,
-  MenubarCheckboxItem,
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarRadioGroup,
-  MenubarRadioItem,
   MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar"
 import { Heart, Github, Copyright, History } from "lucide-react"
 import Dialog from './dialog'
-import Contribute from './contribute'
+import CustomDialog from './contribute'
 import Link from "next/link"
+import { signIn, signOut, useSession } from "next-auth/react"
+import { Button } from "./ui/button"
 
-export default function Menu({ width, height, zoom, svg, projection }) {
+export default function Menu({ width, height, zoom, svg, projection, nav }) {
+  const { data: session, status } = useSession()
+
+  if (nav) return (
+    <Menubar style={{ color: 'white' }}>
+      <MenubarMenu>
+        <MenubarTrigger>Maps</MenubarTrigger>
+        <MenubarContent>
+          <Link href="/">
+            <MenubarItem className="cursor-pointer">
+              Lancer
+            </MenubarItem >
+          </Link>
+        </MenubarContent>
+      </MenubarMenu>
+      <MenubarMenu>
+        <MenubarTrigger><Github size={16} className="relative top-[1px] pe-[2px]" />  About</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><Copyright size={16} className="inline" /> License</a></MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps" target="_blank"><Github size={16} className="inline" /> Source Code</a></MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><History size={16} className="inline" /> Version History</a></MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+  )
+
   return (
     <Menubar style={{ color: 'white' }}>
       <MenubarMenu>
@@ -40,30 +62,52 @@ export default function Menu({ width, height, zoom, svg, projection }) {
       <MenubarMenu>
         <Dialog zoom={zoom} width={width} height={height} svg={svg} projection={projection} />
       </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger><Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute</MenubarTrigger>
-        <MenubarContent>
-          <Contribute text="Edit existing content" />
-          <MenubarSeparator />
-          <Contribute text="Add a new content" />
-          <MenubarSeparator />
-          <Contribute text="Create a new map" />
-          <MenubarSeparator />
-          <Contribute text="Make a suggestion" />
-          <MenubarSeparator />
-          <Contribute text="Make a fork" />
-        </MenubarContent>
-      </MenubarMenu>
+      {session
+        ? <MenubarMenu>
+          <MenubarTrigger><Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute</MenubarTrigger>
+          <MenubarContent>
+            <Link href="/contribute/lancer?tab=edit"><MenubarItem inset className="ps-4 cursor-pointer">Edit existing locations</MenubarItem></Link>
+            <MenubarSeparator />
+            <Link href="/contribute/lancer?tab=create"><MenubarItem inset className="ps-4 cursor-pointer">Add new locations</MenubarItem></Link>
+            <MenubarSeparator />
+            <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank"><MenubarItem inset className="ps-4 cursor-pointer">Create a new map</MenubarItem></a>
+            <MenubarSeparator />
+            <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank"><MenubarItem inset className="ps-4 cursor-pointer">Make a suggestion</MenubarItem></a>
+          </MenubarContent>
+        </MenubarMenu>
+        : <MenubarMenu>
+          <CustomDialog
+            to="/api/auth/signin"
+            title="Want to improve this map?"
+            description="If you want to contribute, you'll need to signin. Please enter your email and a magic link will be emailed to you."
+          >
+            <Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute
+          </CustomDialog>
+        </MenubarMenu>
+      }
+
       <MenubarMenu>
         <MenubarTrigger><Github size={16} className="relative top-[1px] pe-[2px]" />  About</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><Copyright size={16} className="inline" /> License</a></MenubarItem>
+          <a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><MenubarItem inset className="cursor-pointer"><Copyright size={16} className="inline" /> License</MenubarItem></a>
           <MenubarSeparator />
-          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps" target="_blank"><Github size={16} className="inline" /> Source Code</a></MenubarItem>
+          <a href="https://github.com/codabool/community-vtt-maps" target="_blank"><MenubarItem inset className="cursor-pointer"><Github size={16} className="inline" /> Source Code</MenubarItem></a>
           <MenubarSeparator />
-          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><History size={16} className="inline" /> Version History</a></MenubarItem>
+          <a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><MenubarItem inset className="cursor-pointer"><History size={16} className="inline" /> Version History</MenubarItem></a>
         </MenubarContent>
       </MenubarMenu>
+      {session &&
+        <MenubarMenu>
+          <MenubarTrigger >Account</MenubarTrigger >
+          <MenubarContent>
+            <MenubarItem inset className="ps-4 cursor-pointer text-gray-500">See Profile</MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={() => signOut()} className="ps-4 cursor-pointer">
+              Signout
+            </MenubarItem >
+          </MenubarContent>
+        </MenubarMenu>
+      }
     </Menubar>
   )
 }
