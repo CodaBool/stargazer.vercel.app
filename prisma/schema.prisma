@@ -22,15 +22,21 @@ model Comment {
   createdAt  DateTime @default(now()) @db.Timestamp(6)
   content    String
   published  Boolean  @default(false)
-  questionId Int
-  question   Question @relation(fields: [questionId], references: [id])
+  userId String
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
 }
 
-model Question {
+model Location {
   id        Int       @id @default(autoincrement())
-  title     String    @db.VarChar(255)
+  name     String    @db.VarChar(255)
   createdAt DateTime  @default(now()) @db.Timestamp(6)
-  content   String
+  description   String
+  type      String
+  coordinates      String
+  faction      String
+  source      String
   published Boolean   @default(false)
   comments  Comment[]
   resolved  Boolean   @default(false)
@@ -42,10 +48,11 @@ model Question {
 // I found that most fields were optional and could be removed
 model User {
   id            String    @id @default(cuid())
-  name          String?
+  alias          String?   @unique
   email         String    @unique
   emailVerified DateTime?
-  image         String?
+  avatar         String?
+  comments  Comment[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }

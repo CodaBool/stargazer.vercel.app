@@ -1,3 +1,16 @@
+"use client"
+import { useForm } from "react-hook-form"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useSession, signIn, signOut } from "next-auth/react"
 import {
   Accordion,
@@ -5,34 +18,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { getServerSession } from "next-auth/next"
 import { LoaderCircle } from "lucide-react"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route.js"
-import db from "@/lib/db"
-import CreateForm from "@/components/forms/create"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import useSWR from 'swr'
 
-export default async function Contribute({ params, searchParams }) {
-  const session = await getServerSession(authOptions)
+const fetcher = (...args) => fetch(...args).then(res => res.json())
+
+export default function Contribute({ params }) {
+  const { data: session, status } = useSession()
+  const { data, error, isLoading } = useSWR(`/api/contribute?map=${map}`, fetcher)
+  const { register, control, handleSubmit, watch, getFieldState, formState: { errors } } = useForm()
   const { map } = params
-  const { post } = searchParams
-  const locations = await db.location.findMany({
-    where: {
-      published: true,
-      map,
-    }
-  })
-  // console.log(questions)
-  return (
-    <>
-      {post
-        ? <CreateForm />
-        : <Link href={`/contribute/${map}?post=true`}><Button>Add New</Button></Link>
-      }
-      <pre>{JSON.stringify(locations, null, 2)}</pre>
-    </>
-  )
 
   if (status === "unauthenticated") {
     signIn()

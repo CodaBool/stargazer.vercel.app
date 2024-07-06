@@ -7,7 +7,7 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar"
-import { Heart, Github, Copyright, History } from "lucide-react"
+import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight } from "lucide-react"
 import Dialog from './dialog'
 import CustomDialog from './contribute'
 import Link from "next/link"
@@ -79,7 +79,7 @@ export default function Menu({ width, height, zoom, svg, projection, nav }) {
           <CustomDialog
             to="/api/auth/signin"
             title="Want to improve this map?"
-            description="If you want to contribute, you'll need to signin. Please enter your email and a magic link will be emailed to you."
+            content={<span>If you want to contribute, you'll need to signin. Please enter your email and a magic link will be emailed to you.</span>}
           >
             <Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute
           </CustomDialog>
@@ -94,6 +94,16 @@ export default function Menu({ width, height, zoom, svg, projection, nav }) {
           <a href="https://github.com/codabool/community-vtt-maps" target="_blank"><MenubarItem inset className="cursor-pointer"><Github size={16} className="inline" /> Source Code</MenubarItem></a>
           <MenubarSeparator />
           <a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><MenubarItem inset className="cursor-pointer"><History size={16} className="inline" /> Version History</MenubarItem></a>
+          <MenubarSeparator />
+          <CustomDialog
+            titleJSX={<><Heart size={18} className="pe-[2px] animate-bounce inline" />Credits</>}
+            content={<span className="text-xl">
+              <span><Telescope className="inline pr-2"/><a href="https://cohost.org/janederscore" target="_blank"> Janederscore <SquareArrowOutUpRight className="inline" size={14} /></a></span><br />
+              <span><Sparkles className="inline pr-2"/> Starwall</span><br />
+            </span>}
+          >
+            <Heart size={16} className="relative top-[1px] pe-[2px]" /> Major Credits
+          </CustomDialog>
         </MenubarContent>
       </MenubarMenu>
       {session &&

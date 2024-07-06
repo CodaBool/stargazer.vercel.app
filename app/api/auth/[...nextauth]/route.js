@@ -19,8 +19,9 @@ async function sendVerificationRequest({ identifier: email, url }) {
   })
 
   if (!response.ok) {
-    const { errors } = await response.json()
-    throw new Error(JSON.stringify(errors))
+    console.log(response)
+    const res = await response.text()
+    throw new Error(res)
   }
 }
 

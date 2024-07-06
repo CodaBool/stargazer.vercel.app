@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { useRouter } from 'next/navigation'
 
-export default function CustomDialog({ children, to, title, description }) {
+export default function CustomDialog({ children, to, title, content, titleJSX }) {
   const router = useRouter()
   return (
     <Dialog>
@@ -18,12 +18,14 @@ export default function CustomDialog({ children, to, title, description }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]" style={{ color: 'white' }}>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{titleJSX ? titleJSX : title}</DialogTitle>
           <DialogDescription className="py-6">
-            {description}
+            {content}
           </DialogDescription >
         </DialogHeader>
-        <Button onClick={() => router.push(to)}>Let's do it!</Button >
+        {to &&
+          <Button onClick={() => router.push(to)}>Let's do it!</Button >
+        }
       </DialogContent>
     </Dialog>
   )
