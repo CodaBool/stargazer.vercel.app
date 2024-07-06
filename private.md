@@ -1,5 +1,6 @@
 # TODO
 - contribution pages
+- see what github actions I could start on
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
