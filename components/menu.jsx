@@ -78,17 +78,19 @@ export default function Menu({ width, height, zoom, svg, projection, nav }) {
       <MenubarMenu>
         <MenubarTrigger><Github size={16} className="relative top-[1px] pe-[2px]" />  About</MenubarTrigger>
         <MenubarContent>
-          <a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><MenubarItem inset className="cursor-pointer"><Copyright size={16} className="inline" /> License</MenubarItem></a>
+          <a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><MenubarItem inset className="cursor-pointer"><Copyright size={16} className="inline mr-1" /> License</MenubarItem></a>
           <MenubarSeparator />
-          <a href="https://github.com/codabool/community-vtt-maps" target="_blank"><MenubarItem inset className="cursor-pointer"><Github size={16} className="inline" /> Source Code</MenubarItem></a>
+          <a href="https://github.com/codabool/community-vtt-maps" target="_blank"><MenubarItem inset className="cursor-pointer"><Github size={16} className="inline mr-1" /> Source Code</MenubarItem></a>
           <MenubarSeparator />
-          <a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><MenubarItem inset className="cursor-pointer"><History size={16} className="inline" /> Version History</MenubarItem></a>
+          <a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><MenubarItem inset className="cursor-pointer"><History size={16} className="inline mr-1" /> Version History</MenubarItem></a>
           <MenubarSeparator />
           <CustomDialog
             titleJSX={<><Heart size={18} className="pe-[2px] animate-bounce inline mr-2" />Credits</>}
             content={<Credits />}
           >
-            <Heart size={16} className="relative top-[1px] pe-[2px] ml-[1em]" /> Credits
+            <span className="relative left-[-25px]">
+              <Heart size={16} className="relative top-[-1px] pe-[2px] ml-[1em] inline" /> Credits
+            </span >
           </CustomDialog>
         </MenubarContent>
       </MenubarMenu>

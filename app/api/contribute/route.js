@@ -7,12 +7,12 @@ export async function POST(req) {
     const session = await getServerSession(authOptions)
     if (!session) throw "unauthorized"
     const body = await req.json()
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    const user = await db.user.findUnique({ where: { email: session.user.email } })
     if (!user) throw "there is an issue with your account or session"
     console.log("create", body)
     let response
     if (body.type === "location") {
-      response = await prisma.location.create({
+      response = await db.location.create({
         data: {
           name: body.name,
           description: body.description,
@@ -25,7 +25,7 @@ export async function POST(req) {
         }
       })
     } else if (body.type === "comment") {
-      response = await prisma.comment.create({
+      response = await db.comment.create({
         data: {
           userId: user.id,
           content: body.content,

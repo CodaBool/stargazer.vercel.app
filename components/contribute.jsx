@@ -14,7 +14,7 @@ export default function CustomDialog({ children, to, title, content, titleJSX })
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="text-left ps-4 h-8 max-w-[12em]">{children}</Button>
+        <Button variant="ghost" className="text-left h-8 w-[12em]">{children}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]" style={{ color: 'white' }}>
         <DialogHeader>
