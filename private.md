@@ -36,3 +36,10 @@
 - guide https://vercel.com/guides/nextjs-prisma-postgres
 - next-auth requirements https://authjs.dev/getting-started/adapters/prisma#schema
 - example full https://github.com/prisma/prisma-examples/blob/latest/typescript/rest-nextjs-api-routes-auth/prisma/schema.prisma
+
+# prisma
+bunx prisma db pull
+bunx prisma generate
+bunx prisma migrate dev
+
+bunx prisma db pull && bunx prisma generate

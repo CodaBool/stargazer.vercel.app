@@ -1,18 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  // There seems to be a bug with prisma that it needs the non-pool url
-  // https://github.com/prisma/prisma/issues/19415
-  // url      = env("DATABASE_URL")
   url       = env("DIRECT_URL")
   directUrl = env("DIRECT_URL")
 }
@@ -22,39 +13,40 @@ model Comment {
   createdAt  DateTime @default(now()) @db.Timestamp(6)
   content    String
   published  Boolean  @default(false)
-  userId String
   locationId Int
+  userId     String
   location   Location @relation(fields: [locationId], references: [id])
-  user   User @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 }
 
 model Location {
-  id        Int       @id @default(autoincrement())
-  name     String    @db.VarChar(255)
-  createdAt DateTime  @default(now()) @db.Timestamp(6)
-  description   String
-  type      String
-  coordinates      String
-  faction      String
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  description String
+  type        String
+  coordinates String
+  faction     String
   source      String
-  published Boolean   @default(false)
-  comments  Comment[]
-  resolved  Boolean   @default(false)
-  map       String
+  userId      String
+  published   Boolean   @default(false)
+  resolved    Boolean   @default(false)
+  map         String
+  priority    Boolean   @default(true)
+  comments    Comment[]
+  user        User      @relation(fields: [userId], references: [id])
 }
 
-// authentication prisma schema
-// https://authjs.dev/getting-started/adapters/prisma#schema
-// I found that most fields were optional and could be removed
 model User {
-  id            String    @id @default(cuid())
-  alias          String?   @unique
-  email         String    @unique
+  id            String     @id @default(cuid())
+  email         String     @unique
   emailVerified DateTime?
-  avatar         String?
-  comments  Comment[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  alias         String?    @unique
+  avatar        String?
+  comments      Comment[]
+  locations     Location[]
 }
 
 model VerificationToken {

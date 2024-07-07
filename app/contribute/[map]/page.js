@@ -5,91 +5,126 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { getServerSession } from "next-auth/next"
 import { LoaderCircle } from "lucide-react"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route.js"
 import db from "@/lib/db"
-import CreateForm from "@/components/forms/create"
+import CreateForm from "@/components/forms/location"
+import CommentForm from "@/components/forms/comment"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import ScrollTo from "@/components/scroll"
+import CreateLocation from "@/components/forms/location"
+import { Fragment } from "react"
 
 export default async function Contribute({ params, searchParams }) {
   const session = await getServerSession(authOptions)
+
   const { map } = params
-  const { post } = searchParams
+  const { post, comment, scroll } = searchParams
+  const user = session ? await db.user.findUnique({ where: { email: session.user.email } }) : null
   const locations = await db.location.findMany({
     where: {
-      published: true,
+      OR: [
+        { published: true },
+        { userId: user ? user.id : "" }
+      ],
       map,
+    },
+    include: {
+      comments: {
+        where: {
+          OR: [
+            { published: true },
+            { userId: user ? user.id : "" },
+          ]
+        }
+      }
     }
   })
-  // console.log(questions)
+  const commenterIds = locations.flatMap(l => l.comments.map(c => c.userId))
+  const commenters = await db.user.findMany({
+    where: {
+      id: {
+        in: commenterIds
+      }
+    },
+    select: {
+      id: true,
+      alias: true,
+      email: true,
+    }
+  })
+  // console.log("aliases", commenters)
+  locations.forEach(location => {
+    location.comments.forEach(comment => {
+      const commenter = commenters.find(user => user.id === comment.userId);
+      comment.alias = commenter.alias ? commenter.alias : commenter.email.split('@')[0]
+      // comment.email = commenter.email
+    })
+  })
+
+  // console.log("locations", locations.map(l => l.comments))
+
   return (
     <>
       {post
-        ? <CreateForm />
-        : <Link href={`/contribute/${map}?post=true`}><Button>Add New</Button></Link>
+        ? <CreateLocation map={map} />
+        : <Link href={`/contribute/${map}?post=true`} ><Button variant="outline" className="container mx-auto flex justify-center mt-8">Create new Location</Button ></Link>
       }
-      <pre>{JSON.stringify(locations, null, 2)}</pre>
+      {scroll && <ScrollTo scroll={scroll} />}
+      <h1 className="text-2xl text-green-100 text-center mt-8">🚧 All data is temporary while in development! Save any serious submitions for a beta release.</h1>
+      {locations.length === 0 && <h1 className="text-bounce text-2xl text-green-100 text-center mt-8">No Location discussions found</h1 >}
+      {locations.map(location => {
+        return (
+          <Card className={`container mx-auto my-8 location-${location.id}`} key={location.id}>
+            <CardHeader>
+              <CardTitle>{location.name} ({location.type}) {!location.published && <Badge className="relative top-[-4px]">Pending Review</Badge >}</CardTitle>
+              <CardDescription>{location.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p><strong>coordinates</strong>: {location.coordinates}</p>
+              <p><strong>faction</strong>: {location.faction ? location.faction : "none"}</p>
+              <p><strong>source</strong>: {location.source}</p>
+            </CardContent>
+            <CardFooter className="flex-col items-start">
+              {Number(comment) === location.id
+                ? <CommentForm map={map} location={location} />
+                : <Link href={`/contribute/${map}?comment=${location.id}`}><Button variant="outline" className="">Create Comment</Button></Link>
+              }
+              {location.comments?.length > 0 &&
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger>Comments</AccordionTrigger>
+                    <AccordionContent>
+                      {location.comments.map(comment => {
+                        return (
+                          <div className="border border-gray-800 p-2 rounded mb-1" key={comment.id}>
+                            <div className="flex items-center mb-1">
+                              <h2 className="font-bold text-lg mr-2">{comment.alias}</h2>
+                              {!comment.published && <Badge>Pending Review</Badge>}
+                            </div>
+                            <p>{comment.content}</p>
+                          </div>
+                        )
+                      })}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              }
+            </CardFooter >
+          </Card>
+        )
+      })}
     </>
-  )
-
-  if (status === "unauthenticated") {
-    signIn()
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <LoaderCircle className="animate-spin w-16 h-16" />
-      </div>
-    )
-  }
-  if (!session) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <LoaderCircle className="animate-spin w-16 h-16" />
-      </div>
-    )
-  }
-
-  function submit(input) {
-    console.log(input)
-  }
-
-  return (
-    <Form getFieldState={getFieldState}>
-      <form onSubmit={handleSubmit(submit)} className="space-y-8">
-        <Accordion type="single" collapsible>
-          {questions.map((question, i) => {
-            return (
-              <AccordionItem value={i}>
-                <AccordionTrigger>{question.title}</AccordionTrigger>
-                <AccordionContent>
-                  <p>resolved: {question.resolved ? 'yes' : 'no'}</p>
-                  {question.content}
-                </AccordionContent>
-              </AccordionItem>
-            )
-          })}
-        </Accordion>
-
-        <FormField
-          control={control}
-          name="username"
-          defaultValue=""
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="shadcn" {...field} />
-              </FormControl>
-              <FormDescription>
-                This is your public display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Submit</Button>
-      </form>
-    </Form >
   )
 }

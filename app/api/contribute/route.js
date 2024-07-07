@@ -1,17 +1,53 @@
 import db from "@/lib/db"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '../auth/[...nextauth]/route'
 
 export async function POST(req) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) throw "unauthorized"
+    const body = await req.json()
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) throw "there is an issue with your account or session"
+    console.log("create", body)
+    let response
+    if (body.type === "location") {
+      response = await prisma.location.create({
+        data: {
+          name: body.name,
+          description: body.description,
+          type: body.type,
+          coordinates: body.coordinates,
+          faction: body.faction,
+          source: body.source,
+          map: body.map,
+          userId: user.id,
+        }
+      })
+    } else if (body.type === "comment") {
+      response = await prisma.comment.create({
+        data: {
+          userId: user.id,
+          content: body.content,
+          locationId: body.locationId,
+        }
+      })
+    }
+    return Response.json({ id: response.id })
+  } catch (err) {
+    console.error(err)
+    if (typeof err === 'string') {
+      return Response.json({ err }, { status: 400 })
+    } else if (typeof err?.message === "string") {
+      return Response.json({ err: err.message }, { status: 500 })
+    } else {
+      return Response.json(err, { status: 500 })
+    }
+  }
   // const { searchParams } = new URL(request.url)
   // const id = searchParams.get('id')
-  const r = await req.json()
-  console.log(r)
   // const formData = await request.formData()
   // const name = formData.get('name')
-  // await prisma.todo.create({
-  //   data: { title, complete: false },
-  // })
-  return Response.json(r)
-  // return NextResponse.json({ message: "Created Todo" }, { status: 200 });
 }
 
 export async function GET(req, res) {
