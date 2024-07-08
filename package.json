@@ -26,6 +26,7 @@
     "@visx/tooltip": "^3.3.0",
     "@visx/voronoi": "^3.3.0",
     "@visx/zoom": "^3.3.0",
+    "boring-avatars": "^1.10.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

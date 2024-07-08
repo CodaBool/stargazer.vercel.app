@@ -60,10 +60,9 @@ export default function CreateComment({ map, location }) {
   }
 
   async function submit(body) {
-    // console.log("submit", body)
-    body.type = "comment"
+    body.table = "comment"
+    body.map = map
     body.locationId = location.id
-    // console.log("submitting", body)
     setSubmitting(true)
     const res = await fetch('/api/contribute', {
       method: 'POST',

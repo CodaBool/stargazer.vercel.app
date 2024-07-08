@@ -10,7 +10,7 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar"
-import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse } from "lucide-react"
+import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User } from "lucide-react"
 import SearchDialog from './dialog'
 import CustomDialog from './contribute'
 import Link from "next/link"
@@ -39,7 +39,7 @@ export default function Menu({ path, map }) {
             </MenubarSub>
 
             <MenubarSub>
-              <MenubarSubTrigger><ArrowRightFromLine size={16} className="mr-1" /> Export</MenubarSubTrigger>
+              <MenubarSubTrigger className="cursor-pointer"><ArrowRightFromLine size={16} className="mr-1" /> Export</MenubarSubTrigger >
               <MenubarSubContent>
                 <MenubarItem className="cursor-pointer">
                   <Link href="/points.topojson" target="_blank" download>
@@ -58,7 +58,7 @@ export default function Menu({ path, map }) {
             </MenubarSub>
 
             <MenubarSub>
-              <MenubarSubTrigger><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger>
+              <MenubarSubTrigger className="cursor-pointer"><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger >
               <MenubarSubContent>
                 <MenubarItem className="cursor-pointer">
                   <Link href={`/contribute/${map}`}>
@@ -70,11 +70,11 @@ export default function Menu({ path, map }) {
                     <Plus size={16} className="inline mr-1" /> Add a new Location
                   </Link>
                 </MenubarItem >
-                <MenubarItem className="cursor-pointer">
-                  <Link href="https://github.com/codabool/community-vtt-maps/issues">
+                <Link href="https://github.com/codabool/community-vtt-maps/issues">
+                  <MenubarItem className="cursor-pointer">
                     <Bug size={16} className="inline mr-1" /> Something Else
-                  </Link>
-                </MenubarItem >
+                  </MenubarItem >
+                </Link>
               </MenubarSubContent>
             </MenubarSub>
 
@@ -118,12 +118,16 @@ export default function Menu({ path, map }) {
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger>Account</MenubarTrigger >
+          <MenubarTrigger className="cursor-pointer">Account</MenubarTrigger  >
           <MenubarContent>
             <MenubarSeparator />
             {session
               ? <>
-                <MenubarItem inset className="ps-4 cursor-pointer text-gray-500">See Profile</MenubarItem>
+                <Link href="/profile">
+                  <MenubarItem className="cursor-pointer">
+                    <User size={18} className="inline" /> Profile
+                  </MenubarItem >
+                </Link>
                 <MenubarItem onClick={() => signOut()} className="ps-4 cursor-pointer">
                   Sign out
                 </MenubarItem >
@@ -142,7 +146,7 @@ export default function Menu({ path, map }) {
 function AboutMenu() {
   return (
     <MenubarSub>
-      <MenubarSubTrigger><ListCollapse size={16} className="mr-1" />About</MenubarSubTrigger>
+      <MenubarSubTrigger className="cursor-pointer"><ListCollapse size={16} className="mr-1" />About</MenubarSubTrigger >
       <MenubarSubContent>
         <a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank">
           <MenubarItem inset className="cursor-pointer"><Copyright size={16} className="inline mr-1" /> License</MenubarItem>

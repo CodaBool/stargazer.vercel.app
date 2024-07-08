@@ -30,12 +30,9 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useSession, signIn } from "next-auth/react"
-import useSWR from 'swr'
 import { useForm } from "react-hook-form"
 import { LoaderCircle, X } from "lucide-react"
 import { useEffect, useState } from "react"
-
-const fetcher = (...args) => fetch(...args).then(res => res.json())
 
 export default function CreateLocation({ map }) {
   const { data: session, status } = useSession()
@@ -62,7 +59,7 @@ export default function CreateLocation({ map }) {
 
   async function submit(body) {
     body.map = map
-    body.type = "location"
+    body.table = "location"
     setSubmitting(true)
     const res = await fetch('/api/contribute', {
       method: 'POST',
@@ -72,7 +69,7 @@ export default function CreateLocation({ map }) {
     setSubmitting(false)
     // TODO: type selection doesn't get reset to "Type"'
     form.reset()
-    if (response.id) {
+    if (response.msg) {
       toast(`${body.name} has been submitted for review`)
       router.push(`/contribute/${map}?scroll=${window.scrollY}`)
     } else {
@@ -213,6 +210,9 @@ export default function CreateLocation({ map }) {
                   <FormControl>
                     <Textarea {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Formatting support will be added in a later release (newlines are not even supported yet), I'd keeping your description simple until the project progresses
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

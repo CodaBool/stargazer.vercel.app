@@ -25,6 +25,7 @@ import Link from "next/link"
 import ScrollTo from "@/components/scroll"
 import CreateLocation from "@/components/forms/location"
 import { Fragment } from "react"
+import Avatar from "boring-avatars"
 
 export default async function Contribute({ params, searchParams }) {
   const session = await getServerSession(authOptions)
@@ -88,13 +89,14 @@ export default async function Contribute({ params, searchParams }) {
         return (
           <Card className={`container mx-auto my-8 location-${location.id}`} key={location.id}>
             <CardHeader>
-              <CardTitle>{location.name} ({location.type}) {!location.published && <Badge className="relative top-[-4px]">Pending Review</Badge >}</CardTitle>
+              <CardTitle>{location.name}{!location.published && <Badge className="relative top-[-4px] ml-4">Pending Review</Badge >}</CardTitle>
               <CardDescription>{location.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <p><strong>coordinates</strong>: {location.coordinates}</p>
-              <p><strong>faction</strong>: {location.faction ? location.faction : "none"}</p>
+              {location.faction && <p><strong>faction</strong>: {location.faction}</p>}
               <p><strong>source</strong>: {location.source}</p>
+              <p><strong>type</strong>: {location.type}</p>
             </CardContent>
             <CardFooter className="flex-col items-start">
               {Number(comment) === location.id
@@ -110,7 +112,19 @@ export default async function Contribute({ params, searchParams }) {
                         return (
                           <div className="border border-gray-800 p-2 rounded mb-1" key={comment.id}>
                             <div className="flex items-center mb-1">
-                              <h2 className="font-bold text-lg mr-2">{comment.alias}</h2>
+                              <Avatar
+                                size={25}
+                                name={comment.alias}
+                                variant="beam"
+                                colors={[
+                                  '#DBD9B7',
+                                  '#C1C9C8',
+                                  '#A5B5AB',
+                                  '#949A8E',
+                                  '#615566',
+                                ]}
+                              />
+                              <h2 className="font-bold text-lg mx-2">{comment.alias}</h2>
                               {!comment.published && <Badge>Pending Review</Badge>}
                             </div>
                             <p>{comment.content}</p>
