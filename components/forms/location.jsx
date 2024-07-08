@@ -48,8 +48,7 @@ export default function CreateLocation({ map }) {
   if (status === "unauthenticated") {
     return (
       <div className="flex justify-center items-center h-screen flex-col">
-        <p className="max-w-xl mb-8 text-center p-2">In order to contribute, you'll have to authenticate. This is done through magic links. All you need to submit is your email.</p>
-        {/* <p className="max-w-xl mb-8 text-center p-2">Sessions last 1 year (per device) for your convenience</p> */}
+        <p className="max-w-xl mb-8 text-center p-2">To add a new location, we'll have to authenticate you. This is done through magic links. All you need to provide is your email.</p>
         <Button className="w-64" onClick={() => signIn()}>Enter Email</Button >
       </div>
     )

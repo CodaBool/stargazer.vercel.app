@@ -20,8 +20,7 @@ export default function DialogBtn({ zoom, width, height, svg, projection }) {
     function down(e) {
       if (e.code === 'Space') {
         if (open) return
-        // literally no clue why location list is short
-        // if this timeout is not present 🤷
+        // the location list is short if this timeout is not present 🤷
         setTimeout(() => {
           setOpen(true)
         }, 0)
@@ -33,6 +32,7 @@ export default function DialogBtn({ zoom, width, height, svg, projection }) {
   }, [])
 
   useEffect(() => {
+    // move dialog to the top if mobile
     if (mobile && open) {
       setTimeout(() => {
         const dialogContent = document.querySelector('.map-dialog')

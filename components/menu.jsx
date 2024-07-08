@@ -5,108 +5,167 @@ import {
   MenubarItem,
   MenubarMenu,
   MenubarSeparator,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar"
-import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle } from "lucide-react"
-import Dialog from './dialog'
+import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse } from "lucide-react"
+import SearchDialog from './dialog'
 import CustomDialog from './contribute'
 import Link from "next/link"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Button } from "./ui/button"
 
-export default function Menu({ width, height, zoom, svg, projection, nav }) {
+export default function Menu({ path, map }) {
   const { data: session, status } = useSession()
+  if (map) {
+    return (
+      <Menubar>
 
-  if (nav) return (
-    <Menubar style={{ color: 'white' }}>
-      <MenubarMenu>
-        <MenubarTrigger>Maps</MenubarTrigger>
-        <MenubarContent>
-          <Link href="/">
-            <MenubarItem className="cursor-pointer">
-              Lancer
-            </MenubarItem >
-          </Link>
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger><Github size={16} className="relative top-[1px] pe-[2px]" />  About</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><Copyright size={16} className="inline" /> License</a></MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps" target="_blank"><Github size={16} className="inline" /> Source Code</a></MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem inset><a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><History size={16} className="inline" /> Version History</a></MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-    </Menubar>
-  )
-
-  return (
-    <Menubar style={{ color: 'white' }}>
-      <MenubarMenu>
-        <MenubarTrigger>File</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem>
-            <Link href="/points.topojson" target="_blank" download>Download Points Topojson</Link>
-          </MenubarItem>
-          <MenubarItem>
-            <Link href="/polygons.topojson" target="_blank" download>Download Polygon Topojson</Link>
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem className="text-gray-500">
-            Create embed
-          </MenubarItem >
-        </MenubarContent>
-      </MenubarMenu>
-      <MenubarMenu>
-        <Dialog zoom={zoom} width={width} height={height} svg={svg} projection={projection} />
-      </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger><Heart size={16} className="relative top-[1px] pe-[2px]" /> Contribute</MenubarTrigger>
-        <MenubarContent>
-          <Link href="/contribute/lancer"><MenubarItem inset className="ps-4 cursor-pointer">Edit existing locations</MenubarItem></Link>
-          <MenubarSeparator />
-          <Link href="/contribute/lancer?post=true"><MenubarItem inset className="ps-4 cursor-pointer">Add new locations</MenubarItem></Link>
-          <MenubarSeparator />
-          <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank"><MenubarItem inset className="ps-4 cursor-pointer">Create a new map</MenubarItem></a>
-          <MenubarSeparator />
-          <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank"><MenubarItem inset className="ps-4 cursor-pointer">Make a suggestion</MenubarItem></a>
-        </MenubarContent>
-      </MenubarMenu>
-
-      <MenubarMenu>
-        <MenubarTrigger><Github size={16} className="relative top-[1px] pe-[2px]" />  About</MenubarTrigger>
-        <MenubarContent>
-          <a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank"><MenubarItem inset className="cursor-pointer"><Copyright size={16} className="inline mr-1" /> License</MenubarItem></a>
-          <MenubarSeparator />
-          <a href="https://github.com/codabool/community-vtt-maps" target="_blank"><MenubarItem inset className="cursor-pointer"><Github size={16} className="inline mr-1" /> Source Code</MenubarItem></a>
-          <MenubarSeparator />
-          <a href="https://github.com/codabool/community-vtt-maps/releases" target="_blank"><MenubarItem inset className="cursor-pointer"><History size={16} className="inline mr-1" /> Version History</MenubarItem></a>
-          <MenubarSeparator />
-          <CustomDialog
-            titleJSX={<><Heart size={18} className="pe-[2px] animate-bounce inline mr-2" />Credits</>}
-            content={<Credits />}
-          >
-            <span className="relative left-[-25px]">
-              <Heart size={16} className="relative top-[-1px] pe-[2px] ml-[1em] inline" /> Credits
-            </span >
-          </CustomDialog>
-        </MenubarContent>
-      </MenubarMenu>
-      {session &&
         <MenubarMenu>
-          <MenubarTrigger >Account</MenubarTrigger >
+
+          <MenubarTrigger>Menu</MenubarTrigger>
           <MenubarContent>
-            <MenubarItem inset className="ps-4 cursor-pointer text-gray-500">See Profile</MenubarItem>
-            <MenubarSeparator />
-            <MenubarItem onClick={() => signOut()} className="ps-4 cursor-pointer">
-              Signout
-            </MenubarItem >
+            <MenubarSub>
+              <MenubarSubTrigger className="cursor-pointer"><Map size={16} className="mr-1" /> Maps</MenubarSubTrigger >
+              <MenubarSubContent>
+                <Link href="/lancer" >
+                  <MenubarItem className="cursor-pointer">
+                    <Hexagon size={16} className="inline mr-1" /> Lancer
+                  </MenubarItem >
+                </Link>
+              </MenubarSubContent >
+            </MenubarSub>
+
+            <MenubarSub>
+              <MenubarSubTrigger><ArrowRightFromLine size={16} className="mr-1" /> Export</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarItem className="cursor-pointer">
+                  <Link href="/points.topojson" target="_blank" download>
+                    <MapPin size={16} className="inline mr-1" /> Points Topojson
+                  </Link>
+                </MenubarItem >
+                <MenubarItem className="cursor-pointer">
+                  <Link href="/polygons.topojson" target="_blank" download>
+                    <RectangleHorizontal size={16} className="inline mr-1" /> Polygon Topojson
+                  </Link>
+                </MenubarItem >
+                <MenubarItem className="cursor-pointer text-gray-500">
+                  Create Embed
+                </MenubarItem >
+              </MenubarSubContent>
+            </MenubarSub>
+
+            <MenubarSub>
+              <MenubarSubTrigger><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarItem className="cursor-pointer">
+                  <Link href={`/contribute/${map}`}>
+                    <Pencil size={16} className="inline mr-1" /> Edit an existing Location
+                  </Link>
+                </MenubarItem >
+                <MenubarItem className="cursor-pointer">
+                  <Link href={`/contribute/${map}?post=true`}>
+                    <Plus size={16} className="inline mr-1" /> Add a new Location
+                  </Link>
+                </MenubarItem >
+                <MenubarItem className="cursor-pointer">
+                  <Link href="https://github.com/codabool/community-vtt-maps/issues">
+                    <Bug size={16} className="inline mr-1" /> Something Else
+                  </Link>
+                </MenubarItem >
+              </MenubarSubContent>
+            </MenubarSub>
+
+            <AboutMenu />
+
           </MenubarContent>
         </MenubarMenu>
-      }
-    </Menubar>
+
+        <MenubarMenu>
+          <SearchDialog />
+        </MenubarMenu>
+
+      </Menubar>
+    )
+  } else {
+    return (
+      <Menubar>
+
+        <MenubarMenu>
+
+          <MenubarTrigger>Menu</MenubarTrigger>
+          <MenubarContent>
+            <MenubarSub>
+              <MenubarSubTrigger className="cursor-pointer"><Map size={16} className="mr-1" /> Maps</MenubarSubTrigger >
+              <MenubarSubContent>
+                <Link href="/lancer" >
+                  <MenubarItem className="cursor-pointer">
+                    <Hexagon size={16} className="inline mr-1" /> Lancer
+                  </MenubarItem >
+                </Link>
+              </MenubarSubContent >
+            </MenubarSub>
+
+            <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank">
+              <MenubarItem inset className="cursor-pointer  pl-2"><Bug size={16} className="inline mr-1" /> Issues</MenubarItem>
+            </a>
+
+            <AboutMenu />
+
+          </MenubarContent>
+        </MenubarMenu>
+
+        <MenubarMenu>
+          <MenubarTrigger>Account</MenubarTrigger >
+          <MenubarContent>
+            <MenubarSeparator />
+            {session
+              ? <>
+                <MenubarItem inset className="ps-4 cursor-pointer text-gray-500">See Profile</MenubarItem>
+                <MenubarItem onClick={() => signOut()} className="ps-4 cursor-pointer">
+                  Sign out
+                </MenubarItem >
+              </>
+              : <MenubarItem onClick={() => signIn()} className="ps-4 cursor-pointer">
+                Signin
+              </MenubarItem >
+            }
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+    )
+  }
+}
+
+function AboutMenu() {
+  return (
+    <MenubarSub>
+      <MenubarSubTrigger><ListCollapse size={16} className="mr-1" />About</MenubarSubTrigger>
+      <MenubarSubContent>
+        <a href="https://github.com/codabool/community-vtt-maps/blob/main/license" target="_blank">
+          <MenubarItem inset className="cursor-pointer"><Copyright size={16} className="inline mr-1" /> License</MenubarItem>
+        </a>
+
+        <a href="https://github.com/codabool/community-vtt-maps" target="_blank">
+          <MenubarItem inset className="cursor-pointer"><Github size={16} className="inline mr-1" /> Source Code</MenubarItem>
+        </a>
+
+        <a href="https://github.com/codabool/community-vtt-maps/wiki" target="_blank">
+          <MenubarItem inset className="cursor-pointer"><BookOpen size={16} className="inline mr-1" /> Wiki</MenubarItem>
+        </a>
+
+        <CustomDialog
+          titleJSX={<><Heart size={18} className="pe-[2px] animate-bounce inline mr-2" />Credits</>}
+          content={<Credits />}
+        >
+          <span className="relative left-[-25px]">
+            <Heart size={16} className="relative top-[-1px] pe-[2px] ml-[1em] inline" /> Credits
+          </span >
+        </CustomDialog>
+      </MenubarSubContent>
+    </MenubarSub>
   )
 }
 
