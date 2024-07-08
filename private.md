@@ -1,5 +1,7 @@
 # TODO
 - layers to the map
+- profile should have contribution menu link
+- create comment sets the url. Makes going back harder
 - see what github actions I could start on
 
 # Links

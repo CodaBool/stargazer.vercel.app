@@ -56,7 +56,7 @@ export default function CreateComment({ map, location }) {
     // console.log(text)
     // TODO: type selection doesn't get reset to "Type"'
     form.reset()
-    if (response.id) {
+    if (response.msg) {
       toast("your comment has been submitted for review")
       // TODO: this doesn't close comment form
       router.refresh()

@@ -1,7 +1,6 @@
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+import db from "@/lib/db"
 
 async function sendVerificationRequest({ identifier: email, url }) {
   const urlParams = new URLSearchParams({
@@ -25,7 +24,7 @@ async function sendVerificationRequest({ identifier: email, url }) {
 }
 
 export const authOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
     maxAge: 31556952, // in seconds (31,556,952 = 1 year), comment out for added security
@@ -37,6 +36,9 @@ export const authOptions = {
     maxAge: 60 * 60 * 24, // Email link will expire in 24 hours
     sendVerificationRequest,
   }],
+  theme: {
+    colorScheme: "dark",
+  }
 }
 
 const handler = NextAuth(authOptions)
