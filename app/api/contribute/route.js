@@ -44,6 +44,7 @@ export async function POST(req) {
       to: "contact@codabool.com",
       name: user.alias ? user.alias : user.email,
       from: user.email,
+      format: "text/plain",
       secret: process.env.EMAIL_SECRET,
     }).toString()
 
