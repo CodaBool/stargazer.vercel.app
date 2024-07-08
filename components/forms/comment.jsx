@@ -125,7 +125,7 @@ export default function CreateComment({ map, location }) {
           <CardFooter>
             <Button disabled={submitting} type="submit" variant="outline" className="w-full">
               {submitting
-                ? <LoaderCircle className="animate-spin w-16 h-16" />
+                ? <LoaderCircle className="animate-spin" />
                 : "Submit"
               }
             </Button>

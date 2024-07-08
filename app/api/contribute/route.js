@@ -40,8 +40,8 @@ export async function POST(req) {
     }
     // send email for review
     const urlParams = new URLSearchParams({
-      subject: `New ${body.map} ${body.type} for review`,
-      to: "codabool@pm.me",
+      subject: `New ${body.map} ${body.table} for review`,
+      to: "contact@codabool.com",
       name: user.alias ? user.alias : user.email,
       from: user.email,
       secret: process.env.EMAIL_SECRET,
