@@ -10,18 +10,17 @@ async function sendVerificationRequest({ identifier: email, url }) {
     name: "contributor",
     from: "Community Maps",
     secret: process.env.EMAIL_SECRET,
-    body: `Please click here to authenticate - ${url}`
+    simpleBody: `Please click here to authenticate - ${url}`
   }).toString()
   // just keep email contents in a param for now
-  const response = await fetch(`https://email.codabool.workers.dev/?${urlParams}`, {
-    body: "{}",
+  const res = await fetch(`https://email.codabool.workers.dev/?${urlParams}`, {
     method: "POST",
   })
 
-  if (!response.ok) {
-    console.log(response)
-    const res = await response.text()
-    throw new Error(res)
+  if (!res.ok) {
+    const err = await res.text()
+    console.error(err)
+    throw new Error(err)
   }
 }
 

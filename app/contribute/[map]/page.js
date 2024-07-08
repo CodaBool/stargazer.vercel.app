@@ -18,13 +18,11 @@ import { getServerSession } from "next-auth/next"
 import { LoaderCircle } from "lucide-react"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route.js"
 import db from "@/lib/db"
-import CreateForm from "@/components/forms/location"
 import CommentForm from "@/components/forms/comment"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import ScrollTo from "@/components/scroll"
 import CreateLocation from "@/components/forms/location"
-import { Fragment } from "react"
 import Avatar from "boring-avatars"
 
 export default async function Contribute({ params, searchParams }) {

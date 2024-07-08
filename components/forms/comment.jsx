@@ -35,29 +35,12 @@ import { useForm } from "react-hook-form"
 import { LoaderCircle, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
-const fetcher = (...args) => fetch(...args).then(res => res.json())
-
 export default function CreateComment({ map, location }) {
   const { data: session, status } = useSession()
   const [submitting, setSubmitting] = useState()
   const router = useRouter()
   const { toast: toasty } = useToast()
   const form = useForm()
-
-  if (status === "unauthenticated") {
-    signIn()
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <LoaderCircle className="animate-spin w-16 h-16" />
-      </div>
-    )
-  } else if (!session) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <LoaderCircle className="animate-spin w-16 h-16" />
-      </div>
-    )
-  }
 
   async function submit(body) {
     body.table = "comment"
@@ -92,9 +75,19 @@ export default function CreateComment({ map, location }) {
     const el = document.querySelector(`.location-${location.id}`)
     if (!el) return
     el.scrollIntoView()
-
-    // window.scrollTo(0, scroll)
   }, [])
+
+  
+  if (status === "unauthenticated") {
+    signIn()
+    return (
+      <LoaderCircle className="animate-spin m-4" />
+    )
+  } else if (!session) {
+    return (
+      <LoaderCircle className="animate-spin m-4" />
+    )
+  }
 
   return (
     <Form {...form}>
