@@ -81,8 +81,8 @@ export default async function Contribute({ params, searchParams }) {
         : <Link href={`/contribute/${map}?post=true`} ><Button variant="outline" className="container mx-auto flex justify-center mt-8">Create new Location</Button ></Link>
       }
       {scroll && <ScrollTo scroll={scroll} />}
-      <h1 className="text-2xl text-green-100 text-center mt-8">🚧 All data is temporary while in development! Save any serious submitions for a beta release.</h1>
-      {locations.length === 0 && <h1 className="text-bounce text-2xl text-green-100 text-center mt-8">No Location discussions found</h1 >}
+      <h1 className="text-2xl text-blue-100 text-center mt-8">🚧 All data is temporary while in development! Save any serious submitions for a beta release.</h1>
+      {locations.length === 0 && <h1 className="text-bounce text-2xl text-blue-100 text-center my-10 pb-10">No Location discussions found</h1 >}
       {locations.map(location => {
         return (
           <Card className={`container mx-auto my-8 location-${location.id}`} key={location.id}>

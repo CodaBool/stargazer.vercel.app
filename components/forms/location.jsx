@@ -24,8 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
-import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,21 +39,16 @@ export default function CreateLocation({ map }) {
   const [submitting, setSubmitting] = useState()
   const router = useRouter()
   // TODO: pick on toast method
-  const { toast: toasty } = useToast()
   const form = useForm()
 
   if (status === "unauthenticated") {
+    router.push("/contribute")
     return (
-      <div className="flex justify-center items-center h-screen flex-col">
-        <p className="max-w-xl mb-8 text-center p-2">To add a new location, we'll have to authenticate you. This is done through magic links. All you need to provide is your email.</p>
-        <Button className="w-64" onClick={() => signIn()}>Enter Email</Button >
-      </div>
+      <LoaderCircle className="animate-spin mt-[48px] mx-auto" />
     )
   } else if (!session) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <LoaderCircle className="animate-spin w-16 h-16" />
-      </div>
+      <LoaderCircle className="animate-spin mt-[48px] mx-auto" />
     )
   }
 
@@ -65,19 +60,15 @@ export default function CreateLocation({ map }) {
       method: 'POST',
       body: JSON.stringify(body)
     })
-    const response = await res.json();
+    const response = await res.json()
     setSubmitting(false)
     // TODO: type selection doesn't get reset to "Type"'
     form.reset()
     if (response.msg) {
-      toast(`${body.name} has been submitted for review`)
+      toast.success(response.msg)
       router.push(`/contribute/${map}?scroll=${window.scrollY}`)
     } else {
-      toasty({
-        variant: "destructive",
-        title: "Could not create new location",
-        description: response.err,
-      })
+      toast.warning("Could not create a new location at this time")
     }
   }
 
@@ -195,6 +186,30 @@ export default function CreateLocation({ map }) {
                   <FormDescription>
                     Page number from source material and name of book. 3rd party locations are acceptable
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="thirdParty"
+              defaultValue={false}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Third Party
+                    </FormLabel>
+                    <FormDescription>
+                      Is this location from official Lancer work or a third party source
+                    </FormDescription>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

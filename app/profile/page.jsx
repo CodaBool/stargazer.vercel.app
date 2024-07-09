@@ -6,8 +6,10 @@ import { redirect } from 'next/navigation'
 
 export default async function Profile() {
   const session = await getServerSession(authOptions)
-  if (!session) redirect('/')
+  if (!session) redirect('/contribute')
   const user = await db.user.findUnique({ where: { email: session.user.email } })
+  if (!user) redirect('/contribute')
+
 
   return (
     <ProfileForm user={user} />

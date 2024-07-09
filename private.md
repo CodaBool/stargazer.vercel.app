@@ -45,3 +45,4 @@ bunx prisma generate
 bunx prisma migrate dev
 
 bunx prisma db pull && bunx prisma generate
+bunx prisma migrate dev --name new_guy && bunx prisma generate

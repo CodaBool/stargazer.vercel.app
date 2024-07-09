@@ -25,7 +25,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { toast } from "sonner"
-import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +38,6 @@ export default function CreateComment({ map, location }) {
   const { data: session, status } = useSession()
   const [submitting, setSubmitting] = useState()
   const router = useRouter()
-  const { toast: toasty } = useToast()
   const form = useForm()
 
   async function submit(body) {
@@ -53,20 +51,15 @@ export default function CreateComment({ map, location }) {
     })
     const response = await res.json();
     setSubmitting(false)
-    // console.log(text)
     // TODO: type selection doesn't get reset to "Type"'
     form.reset()
     if (response.msg) {
-      toast("your comment has been submitted for review")
+      toast.success(response.msg)
       // TODO: this doesn't close comment form
       router.refresh()
       router.push(`/contribute/${map}?scroll=${window.scrollY}`)
     } else {
-      toasty({
-        variant: "destructive",
-        title: "Could not create a new comment at this time",
-        description: response.err,
-      })
+      toast.warning("Could not create a new comment at this time")
     }
   }
 
@@ -77,7 +70,7 @@ export default function CreateComment({ map, location }) {
     el.scrollIntoView()
   }, [])
 
-  
+
   if (status === "unauthenticated") {
     signIn()
     return (

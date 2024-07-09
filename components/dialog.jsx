@@ -47,7 +47,7 @@ export default function DialogBtn({ zoom, width, height, svg, projection }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen} className="">
-      <Button variant="ghost" ref={btn} onClick={() => setOpen(true)}><Search size={16} className="relative top-[1px]" /> Search</Button>
+      <Button variant="ghost" ref={btn} onClick={() => setOpen(true)}><Search size={16} className="relative top-[0px] mr-1" /> Search</Button>
       <DialogContent className="sm:max-w-[500px] map-dialog" style={{ color: 'white' }}>
         <DialogHeader>
           <DialogTitle>Search the Map</DialogTitle>

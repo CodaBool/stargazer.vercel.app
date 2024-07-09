@@ -31,6 +31,7 @@ model Location {
   userId      String
   published   Boolean   @default(false)
   resolved    Boolean   @default(false)
+  thirdParty  Boolean   @default(false)
   map         String
   priority    Boolean   @default(true)
   comments    Comment[]

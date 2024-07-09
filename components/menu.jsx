@@ -10,7 +10,7 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar"
-import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User } from "lucide-react"
+import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut, LogIn } from "lucide-react"
 import SearchDialog from './dialog'
 import CustomDialog from './contribute'
 import Link from "next/link"
@@ -41,16 +41,16 @@ export default function Menu({ path, map }) {
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><ArrowRightFromLine size={16} className="mr-1" /> Export</MenubarSubTrigger >
               <MenubarSubContent>
-                <MenubarItem className="cursor-pointer">
-                  <Link href="/points.topojson" target="_blank" download>
+                <Link href="/points.topojson" target="_blank" download>
+                  <MenubarItem className="cursor-pointer">
                     <MapPin size={16} className="inline mr-1" /> Points Topojson
-                  </Link>
-                </MenubarItem >
-                <MenubarItem className="cursor-pointer">
-                  <Link href="/polygons.topojson" target="_blank" download>
+                  </MenubarItem >
+                </Link>
+                <Link href="/polygons.topojson" target="_blank" download>
+                  <MenubarItem className="cursor-pointer">
                     <RectangleHorizontal size={16} className="inline mr-1" /> Polygon Topojson
-                  </Link>
-                </MenubarItem >
+                  </MenubarItem >
+                </Link>
                 <MenubarItem className="cursor-pointer text-gray-500">
                   Create Embed
                 </MenubarItem >
@@ -60,21 +60,21 @@ export default function Menu({ path, map }) {
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger >
               <MenubarSubContent>
-                <MenubarItem className="cursor-pointer">
-                  <Link href={`/contribute/${map}`}>
+                <Link href={`/contribute/${map}`}>
+                  <MenubarItem className="cursor-pointer">
                     <Pencil size={16} className="inline mr-1" /> Edit an existing Location
-                  </Link>
-                </MenubarItem >
-                <MenubarItem className="cursor-pointer">
-                  <Link href={`/contribute/${map}?post=true`}>
+                  </MenubarItem>
+                </Link>
+                <Link href={session ? `/contribute/${map}?post=true` : "/contribute"}>
+                  <MenubarItem className="cursor-pointer">
                     <Plus size={16} className="inline mr-1" /> Add a new Location
-                  </Link>
-                </MenubarItem >
-                <Link href="https://github.com/codabool/community-vtt-maps/issues">
+                  </MenubarItem >
+                </Link>
+                <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank">
                   <MenubarItem className="cursor-pointer">
                     <Bug size={16} className="inline mr-1" /> Something Else
                   </MenubarItem >
-                </Link>
+                </a>
               </MenubarSubContent>
             </MenubarSub>
 
@@ -124,16 +124,16 @@ export default function Menu({ path, map }) {
             {session
               ? <>
                 <Link href="/profile">
-                  <MenubarItem className="cursor-pointer">
-                    <User size={18} className="inline" /> Profile
+                  <MenubarItem className="cursor-pointer pl-[.98em]">
+                    <User size={18} className="inline mr-1" /> Profile
                   </MenubarItem >
                 </Link>
                 <MenubarItem onClick={() => signOut()} className="ps-4 cursor-pointer">
-                  Sign out
+                  <LogOut size={16} className="inline mr-1" /> Sign out
                 </MenubarItem >
               </>
               : <MenubarItem onClick={() => signIn()} className="ps-4 cursor-pointer">
-                Signin
+                <LogIn size={16} className="inline mr-1" /> Signin
               </MenubarItem >
             }
           </MenubarContent>
