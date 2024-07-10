@@ -122,7 +122,7 @@ export default function CreateLocation({ map }) {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="territory">Territory (polygon)</SelectItem>
-                        <SelectItem value="cluster">Cluster (polygon)</SelectItem>
+                        <SelectItem value="cluster">Star Cluster (polygon)</SelectItem>
                         <SelectItem value="terrestrial">Terrestrial</SelectItem>
                         <SelectItem value="gate">Gate</SelectItem>
                         <SelectItem value="jovian">Jovian</SelectItem>

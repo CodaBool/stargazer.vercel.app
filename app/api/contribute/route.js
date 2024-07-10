@@ -11,8 +11,8 @@ export async function POST(req) {
     if (!user) throw "there is an issue with your account or session"
 
     // check if this user has at least 2 approved comments
-    const comments = await db.comment.findMany({ where: { userId: user.id, published: true } })
-    const published = comments.length > 1
+    const publishedComments = await db.comment.findMany({ where: { userId: user.id, published: true } })
+    const published = publishedComments.length > 1
 
     let response
     if (body.table === "location") {
@@ -51,7 +51,7 @@ export async function POST(req) {
       // send email for review
       const urlParams = new URLSearchParams({
         subject: `New ${body.map} ${body.table} for review`,
-        to: "contact@codabool.com",
+        to: "codabool@pm.me",
         name: user.alias ? user.alias : user.email,
         from: user.email,
         format: "text/plain",

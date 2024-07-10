@@ -9,7 +9,7 @@ async function sendVerificationRequest({ identifier: email, url }) {
     name: "contributor",
     from: "Community Maps",
     secret: process.env.EMAIL_SECRET,
-    simpleBody: `<h1>Welcome to community maps</h1><a href="${url}">Please click here to login</a><p>This link is only valid for 24 hours</p>`
+    simpleBody: `<h1>Welcome to Stargazer</h1><a href="${url}">Please click here to login</a><p>This link is only valid for 24 hours</p>`
   }).toString()
   // just keep email contents in a param for now
   const res = await fetch(`https://email.codabool.workers.dev/?${urlParams}`, {

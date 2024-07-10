@@ -1,6 +1,8 @@
 # TODO
 - see what github actions I could start on
 - mobile has extra space on /lancer
+- help users get coordinates
+- allow for limited markdown descriptions (header, quote), consider making https links clickable
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
