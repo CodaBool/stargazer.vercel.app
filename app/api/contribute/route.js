@@ -68,7 +68,7 @@ export async function POST(req) {
     }
 
     return Response.json({
-      msg: published ? `Your ${body.table} has been automatically published due to your standing` : `Your ${body.table} has been submitted for review`
+      msg: published ? `Your ${body.table} has been published` : `Your ${body.table} has been submitted for review`
     })
   } catch (err) {
     console.error(err)

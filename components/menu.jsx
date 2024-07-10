@@ -16,6 +16,7 @@ import CustomDialog from './contribute'
 import Link from "next/link"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Button } from "./ui/button"
+import { maps } from "@/lib/utils"
 
 export default function Menu({ path, map }) {
   const { data: session, status } = useSession()
@@ -94,7 +95,6 @@ export default function Menu({ path, map }) {
       <Menubar>
 
         <MenubarMenu>
-
           <MenubarTrigger>Menu</MenubarTrigger>
           <MenubarContent>
             <MenubarSub>
@@ -108,6 +108,19 @@ export default function Menu({ path, map }) {
               </MenubarSubContent >
             </MenubarSub>
 
+            {(path === "/profile" || path === "/contribute") &&
+              <MenubarSub>
+                <MenubarSubTrigger className="cursor-pointer"><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger >
+                <MenubarSubContent>
+                  <Link href={`/contribute/lancer`}>
+                    <MenubarItem className="cursor-pointer">
+                      <Hexagon size={16} className="inline mr-1" /> Lancer
+                    </MenubarItem>
+                  </Link>
+                </MenubarSubContent >
+              </MenubarSub>
+            }
+
             <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank">
               <MenubarItem inset className="cursor-pointer  pl-2"><Bug size={16} className="inline mr-1" /> Issues</MenubarItem>
             </a>
@@ -115,14 +128,15 @@ export default function Menu({ path, map }) {
             <AboutMenu />
 
           </MenubarContent>
+
         </MenubarMenu>
 
-        <MenubarMenu>
-          <MenubarTrigger className="cursor-pointer">Account</MenubarTrigger  >
-          <MenubarContent>
-            <MenubarSeparator />
-            {session
-              ? <>
+        {session &&
+          <MenubarMenu>
+            <MenubarTrigger className="cursor-pointer">Account</MenubarTrigger  >
+            <MenubarContent>
+              <MenubarSeparator />
+              <>
                 <Link href="/profile">
                   <MenubarItem className="cursor-pointer pl-[.98em]">
                     <User size={18} className="inline mr-1" /> Profile
@@ -132,12 +146,9 @@ export default function Menu({ path, map }) {
                   <LogOut size={16} className="inline mr-1" /> Sign out
                 </MenubarItem >
               </>
-              : <MenubarItem onClick={() => signIn()} className="ps-4 cursor-pointer">
-                <LogIn size={16} className="inline mr-1" /> Signin
-              </MenubarItem >
-            }
-          </MenubarContent>
-        </MenubarMenu>
+            </MenubarContent>
+          </MenubarMenu>
+        }
       </Menubar>
     )
   }
@@ -231,7 +242,7 @@ function Credits() {
         </span>
       </span>
 
-      <span className="text-center block text-[dimgray] mt-8">Lancer is copyright Massif Press</span>
+      <span className="text-center block text-[dimgray] mt-8">Stargazer is not an official Lancer product<br />Lancer is copyright Massif Press</span>
     </>
   )
 }

@@ -29,7 +29,6 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useSession, signIn } from "next-auth/react"
-import useSWR from 'swr'
 import { useForm } from "react-hook-form"
 import { LoaderCircle, X } from "lucide-react"
 import { useEffect, useState } from "react"

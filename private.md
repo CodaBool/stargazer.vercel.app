@@ -1,8 +1,6 @@
 # TODO
-- layers to the map
-- profile should have contribution menu link
-- create comment sets the url. Makes going back harder
 - see what github actions I could start on
+- mobile has extra space on /lancer
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
@@ -38,6 +36,7 @@
 - guide https://vercel.com/guides/nextjs-prisma-postgres
 - next-auth requirements https://authjs.dev/getting-started/adapters/prisma#schema
 - example full https://github.com/prisma/prisma-examples/blob/latest/typescript/rest-nextjs-api-routes-auth/prisma/schema.prisma
+- d3 starmap example https://observablehq.com/@d3/star-map?collection=@d3/d3-geo
 
 # prisma
 bunx prisma db pull

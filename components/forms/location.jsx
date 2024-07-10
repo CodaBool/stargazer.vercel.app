@@ -207,7 +207,7 @@ export default function CreateLocation({ map }) {
                       Third Party
                     </FormLabel>
                     <FormDescription>
-                      Is this location from official Lancer work or a third party source
+                      Is this location from official Lancer source material or an unofficial third party source
                     </FormDescription>
                   </div>
                   <FormMessage />
@@ -236,7 +236,7 @@ export default function CreateLocation({ map }) {
           <CardFooter>
             <Button disabled={submitting} type="submit" variant="outline" className="w-full">
               {submitting
-                ? <LoaderCircle className="animate-spin w-16 h-16" />
+                ? <LoaderCircle className="animate-spin" />
                 : "Submit"
               }
             </Button>

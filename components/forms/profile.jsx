@@ -63,13 +63,12 @@ export default function CreateLocation({ user }) {
     // TODO: type selection doesn't get reset to "Type"'
     // form.reset()
     if (response.msg === "success") {
-      console.log("in here", response)
       toast(`Profile successfully updated`)
       router.refresh()
     } else {
       toasty({
         variant: "destructive",
-        title: "Could not create update profile",
+        title: "Could not update profile",
         description: response.err,
       })
     }
