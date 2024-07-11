@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import ScrollTo from "@/components/scroll"
 import CreateLocation from "@/components/forms/location"
+import DOMPurify from "isomorphic-dompurify"
 import Avatar from "boring-avatars"
 
 export default async function Contribute({ params, searchParams }) {
@@ -72,8 +73,6 @@ export default async function Contribute({ params, searchParams }) {
     })
   })
 
-  // console.log("locations", locations.map(l => l.comments))
-
   return (
     <>
       {post
@@ -84,11 +83,12 @@ export default async function Contribute({ params, searchParams }) {
       <h1 className="text-2xl text-blue-100 text-center mt-8">🚧 All data is temporary while in development! Save any serious submitions for a beta release.</h1>
       {locations.length === 0 && <h1 className="text-bounce text-2xl text-blue-100 text-center my-10 pb-10">No Location discussions found</h1 >}
       {locations.map(location => {
+        let cleanHTML = DOMPurify.sanitize(location.description)
         return (
           <Card className={`container mx-auto my-8 location-${location.id}`} key={location.id}>
             <CardHeader>
               <CardTitle>{location.name}{!location.published && <Badge className="relative top-[-4px] ml-4">Pending Review</Badge >}</CardTitle>
-              <CardDescription>{location.description}</CardDescription>
+              <div className="location-description" dangerouslySetInnerHTML={{ __html: cleanHTML }}></div>
             </CardHeader>
             <CardContent>
               <p><strong>coordinates</strong>: {location.coordinates}</p>
@@ -107,6 +107,7 @@ export default async function Contribute({ params, searchParams }) {
                     <AccordionTrigger>Comments</AccordionTrigger>
                     <AccordionContent>
                       {location.comments.map(comment => {
+                        cleanHTML = DOMPurify.sanitize(comment.content)
                         return (
                           <div className="border border-gray-800 p-2 rounded mb-1" key={comment.id}>
                             <div className="flex items-center mb-1">
@@ -125,7 +126,8 @@ export default async function Contribute({ params, searchParams }) {
                               <h2 className="font-bold text-lg mx-2">{comment.alias}</h2>
                               {!comment.published && <Badge>Pending Review</Badge>}
                             </div>
-                            <p>{comment.content}</p>
+                            {/* <p>{comment.content}</p> */}
+                            <div className="location-description" dangerouslySetInnerHTML={{ __html: cleanHTML }}></div>
                           </div>
                         )
                       })}

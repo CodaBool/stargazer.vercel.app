@@ -2,20 +2,10 @@
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Card,
   CardContent,
@@ -27,13 +17,14 @@ import {
 import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useSession, signIn } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { LoaderCircle, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import dynamic from "next/dynamic"
 
 export default function CreateComment({ map, location }) {
+  const Editor = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), [])
   const { data: session, status } = useSession()
   const [submitting, setSubmitting] = useState()
   const router = useRouter()
@@ -95,19 +86,18 @@ export default function CreateComment({ map, location }) {
                 <X />
               </Button>
             </div>
-            <CardDescription>Add context to this location</CardDescription>
+            <CardDescription>Add context to this location. Selecting written text allows for rich editing.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
               control={form.control}
-              rules={{ required: "This is required" }}
               name="content"
               defaultValue=""
+              rules={{ required: "This is required" }}
               render={({ field }) => (
-                <FormItem className="">
-                  {/* <FormLabel>Name</FormLabel> */}
+                <FormItem>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Editor theme="bubble" value={field.value} onChange={field.onChange} className="border border-gray-800" />
                   </FormControl>
                   <FormMessage />
                 </FormItem >

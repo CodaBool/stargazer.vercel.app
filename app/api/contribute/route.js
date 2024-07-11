@@ -86,6 +86,7 @@ export async function POST(req) {
   // const name = formData.get('name')
 }
 
+// be aware that nextjs 13 does aggressive caching on GETs
 export async function GET(req, res) {
   const { searchParams } = new URL(req.url)
   const type = searchParams.get('type')
@@ -99,7 +100,6 @@ export async function GET(req, res) {
       data: { published: true },
     })
     return new Response(`successfully published ${type}`)
-    res.status(200).json({ message: `successfully published ${type}` })
   } catch (error) {
     console.error("could not publish", id, type, secret, error);
     return Response.json({ error }, { status: 500 });

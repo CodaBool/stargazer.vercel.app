@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -29,16 +28,19 @@ import { toast } from "sonner"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useSession, signIn } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { LoaderCircle, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
+import dynamic from "next/dynamic"
+import 'react-quill/dist/quill.bubble.css'
 
 export default function CreateLocation({ map }) {
+  // https://github.com/zenoamaro/react-quill/issues/921
+  const Editor = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), [])
   const { data: session, status } = useSession()
   const [submitting, setSubmitting] = useState()
   const router = useRouter()
-  // TODO: pick on toast method
   const form = useForm()
 
   if (status === "unauthenticated") {
@@ -86,7 +88,7 @@ export default function CreateLocation({ map }) {
                 <X />
               </Button>
             </div>
-            <CardDescription>Add either a new polygon or point to the map. For other requests use the <a className="text-blue-50" href="https://github.com/CodaBool/community-vtt-maps/issues">issues</a > page</CardDescription>
+            <CardDescription>Add either a new polygon or point to the map. For other requests use the <a className="text-blue-50" href="https://github.com/CodaBool/community-vtt-maps/issues">issues</a> page</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField
@@ -146,10 +148,10 @@ export default function CreateLocation({ map }) {
                 <FormItem className="py-4">
                   <FormLabel>Coordinates</FormLabel>
                   <FormControl>
-                    <Input placeholder="-82, 42" {...field} />
+                    <Input placeholder="-24, 601" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The coordinates for this location. Use the the map to evaluate this. It's fine to use your best guess and add more detail in the description. Should be two numbers separated by a comma.
+                    The x and y coordinates for this location. Use the <a href="/lancer?c=1" className="text-blue-50" target="_blank">Find Coordinates</a> control to determine this. If you're unsure about a coordinate, mention that in your description.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -181,10 +183,10 @@ export default function CreateLocation({ map }) {
                 <FormItem className="py-4">
                   <FormLabel>Source of Information</FormLabel>
                   <FormControl>
-                    <Input placeholder="Core pg. 234" {...field} />
+                    <Input placeholder="Core pg. 404" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Page number from source material and name of book. 3rd party locations are acceptable
+                    Name and page number for the source material this location is from
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -214,19 +216,20 @@ export default function CreateLocation({ map }) {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
-              rules={{ required: "Please write more information about this location" }}
               name="description"
               defaultValue=""
+              rules={{ required: "You must provide detail in the description" }}
               render={({ field }) => (
                 <FormItem className="py-4">
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea {...field} />
+                    <Editor theme="bubble" value={field.value} onChange={field.onChange} className="border border-gray-800" />
                   </FormControl>
                   <FormDescription>
-                    Formatting support will be added in a later release (newlines are not even supported yet), I'd keeping your description simple until the project progresses
+                    Description of the location. Selecting written text allows for rich editing.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

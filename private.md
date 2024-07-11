@@ -1,8 +1,7 @@
 # TODO
 - see what github actions I could start on
-- mobile has extra space on /lancer
-- help users get coordinates
-- allow for limited markdown descriptions (header, quote), consider making https links clickable
+- mobile cant handle resize events for its menubar
+- make https links clickable
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
@@ -21,6 +20,13 @@
 - https://atticus.dev/svg-plotter/demo/index.html -> geojson (22000000 width)
 - https://geojson.io -> do your geo work here, export topojson to mapshaper
 - https://mapshaper.org -> export individual layer to clipboard and paste topojson to data.js
+
+# top scifi VTT
+1. Starfinder (module) 50%
+2. Cyberpunk (PDF) 43%
+3. Star Wars (PDF) 40%
+4. Lancer (PDF) 39%
+5. Alien (module) 32%
 
 # maps
 - Karma Reef Sector http://madletter.net/rpg/lancer/lancer-map-2.jpg
@@ -46,4 +52,4 @@ bunx prisma generate
 bunx prisma migrate dev
 
 bunx prisma db pull && bunx prisma generate
-bunx prisma migrate dev --name new_guy && bunx prisma generate
+bunx prisma migrate dev --name char_limits && bunx prisma generate

@@ -11,7 +11,7 @@ datasource db {
 model Comment {
   id         Int      @id @default(autoincrement())
   createdAt  DateTime @default(now()) @db.Timestamp(6)
-  content    String
+  content    String   @db.VarChar(3000)
   published  Boolean  @default(false)
   locationId Int
   userId     String
@@ -21,13 +21,13 @@ model Comment {
 
 model Location {
   id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(255)
+  name        String    @db.VarChar(80)
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
-  description String
-  type        String
-  coordinates String
-  faction     String
-  source      String
+  description String    @db.VarChar(3000)
+  type        String    @db.VarChar(25)
+  coordinates String    @db.VarChar(25)
+  faction     String    @db.VarChar(50)
+  source      String    @db.VarChar(100)
   userId      String
   published   Boolean   @default(false)
   resolved    Boolean   @default(false)
@@ -44,7 +44,7 @@ model User {
   emailVerified DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
-  alias         String?    @unique
+  alias         String?    @unique @db.VarChar(16)
   avatar        String?
   comments      Comment[]
   locations     Location[]

@@ -23,10 +23,11 @@ import { ChevronLeft, LoaderCircle, Menu } from 'lucide-react'
 const world = topojson.feature(geography, geography.objects.collection)
 const lines = topojson.feature(geography, geography.objects.lines)
 const pointsGeo = topojson.feature(points, points.objects.collection)
+let touchStartTimeout = null
 const scale = 400
 let projection, svgGlobal, zoomGlobal
 const layers = new Set(["unofficial", "guide", "background"])
-const center = [-80, 40]
+const center = [-78, 26]
 const MENU_HEIGHT_PX = 40
 const TOOLTIP_WIDTH_PX = 200
 const TOOLTIP_HEIGHT_PX = 150
@@ -55,6 +56,7 @@ function useScreen() {
 }
 
 const Tooltip = ({ name, type, crowded, faction, destroyed }) => {
+  if (!name) return (<div className="map-tooltip"></div>)
   return (
     <div className="map-tooltip" style={{ border: "1px solid red", position: "absolute", color: 'white', backgroundColor: 'black', padding: '0.5em', border: '1px dashed gray', borderRadius: '12px', visibility: 'hidden', left: 0, width: TOOLTIP_WIDTH_PX, height: TOOLTIP_HEIGHT_PX }}>
       <h3 className='pb-2 font-bold text-center'>{name}</h3 >
@@ -219,19 +221,23 @@ function Map({ width, height }) {
   }
 
   useEffect(() => {
-    if (!svgRef.current || !zoomGlobal || !projection) return
+    // has issues on mobile, just disable
+    if (!svgRef.current || !zoomGlobal || !projection || mobile) return
+    setTooltip()
+    positionTooltip({ pageX: 0, pageY: 0 })
 
     // recenter back on Cradle if the window is resized
     // TODO: support mobile landscape (currently is offcentered)
-    const [x, y] = projection([-78, 42])
+    const [x, y] = projection([-78.01, 48.5])
 
     // debounce the resize events
     clearTimeout(resizeTimeout.current)
     resizeTimeout.current = setTimeout(() => {
       const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
-      console.log("window resized, recentering to", Math.floor(width / 2 - x + resizeOffsetX), Math.floor(height / 2 - y - 200 + resizeOffsetY))
+      if (Math.abs(width / 2 - x + resizeOffsetX) < 2 && Math.abs(height / 2 - y - 200 + resizeOffsetY) < 2) return
+      console.log("window resized, recentering by", Math.floor(width / 2 - x + resizeOffsetX), Math.floor(height / 2 - y - 200 + resizeOffsetY))
       const transform = d3.zoomIdentity.translate(width / 2 - x + resizeOffsetX, height / 2 - y - 200 + resizeOffsetY).scale(1)
-      d3.select(svgRef.current).transition().duration(750).call(zoomGlobal.transform, transform)
+      d3.select(svgRef.current).transition().duration(500).call(zoomGlobal.transform, transform)
     }, 250)
   }, [width, height])
 
@@ -241,6 +247,7 @@ function Map({ width, height }) {
     svgGlobal = svg
     projection = d3.geoMercator().scale(scale).center(center).translate([width / 2, height / 2])
     const pathGenerator = d3.geoPath().projection(projection)
+
 
 
     // styling
@@ -258,6 +265,84 @@ function Map({ width, height }) {
         .attr('r', Math.random() * 2)
         .style('fill', `rgba(255, 255, 255, ${Math.random() / 3})`)
     }
+
+    const crosshairX = svg.append('line')
+      .attr('class', 'crosshair')
+      .attr('x2', width)
+      .attr('y1', height / 2)
+      .attr('y2', height / 2)
+      .attr('stroke', 'white')
+      .attr('pointer-events', 'none')
+      .style('visibility', 'hidden')
+
+    const crosshairY = svg.append('line')
+      .attr('class', 'crosshair')
+      .attr('x1', width / 2)
+      .attr('x2', width / 2)
+      .attr('y2', height)
+      .attr('stroke', 'white')
+      .attr('pointer-events', 'none')
+      .style('visibility', 'hidden')
+
+    const coordinatesText = svg.append('text')
+      .attr('class', 'coordinates-text')
+      .attr('x', width / 2)
+      .attr('y', 40)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'white')
+      .attr('opacity', 0.7)
+      .style('font-size', '30px')
+      .style('pointer-events', 'none');
+
+    svg.on("mousemove", (e) => {
+      if (!layers.has("crosshair")) return
+      const [mouseX, mouseY] = d3.pointer(e)
+      crosshairX.attr('y1', mouseY).attr('y2', mouseY).style('visibility', 'visible')
+      crosshairY.attr('x1', mouseX).attr('x2', mouseX).style('visibility', 'visible')
+
+      const transform = d3.zoomTransform(svg.node())
+      const transformedX = (mouseX - transform.x) / transform.k;
+      const transformedY = (mouseY - transform.y) / transform.k
+      const [x, y] = projection.invert([transformedX, transformedY])
+      coordinatesText.text(`X: ${Math.floor(x)}, Y: ${Math.floor(y)}`).style('visibility', 'visible')
+    });
+
+    svg.on("touchstart", (e) => {
+      if (!layers.has("crosshair")) return
+      // use a timeout since touchmove will begin with a touchstart and override
+      touchStartTimeout = setTimeout(() => {
+        const [touchX, touchY] = [e.touches[0].clientX, e.touches[0].clientY];
+        crosshairX.attr('y1', touchY).attr('y2', touchY).style('visibility', 'visible')
+        crosshairY.attr('x1', touchX).attr('x2', touchX).style('visibility', 'visible')
+        const transform = d3.zoomTransform(svg.node());
+        const transformedX = (touchX - transform.x) / transform.k;
+        const transformedY = (touchY - transform.y) / transform.k;
+        const [x, y] = projection.invert([transformedX, transformedY])
+        coordinatesText.text(`X: ${Math.floor(x)}, Y: ${Math.floor(y)}`).style('visibility', 'visible')
+      }, 80)
+    })
+
+    svg.on("touchmove", (e) => {
+      if (!layers.has("crosshair")) return
+      clearTimeout(touchStartTimeout)
+      crosshairX.style('visibility', 'hidden')
+      crosshairY.style('visibility', 'hidden')
+      coordinatesText.style('visibility', 'hidden')
+    })
+
+    svg.on("mouseout", () => {
+      if (!layers.has("crosshair")) return
+      crosshairX.style('visibility', 'hidden')
+      crosshairY.style('visibility', 'hidden')
+      coordinatesText.style('visibility', 'hidden')
+    })
+
+    svg.on("mousedown", () => {
+      if (!layers.has("crosshair")) return
+      crosshairX.style('visibility', 'hidden');
+      crosshairY.style('visibility', 'hidden')
+      coordinatesText.style('visibility', 'hidden')
+    })
 
     // Territory SVG Polygons
     g.selectAll('.group')
@@ -280,6 +365,7 @@ function Map({ width, height }) {
         positionTooltip(e)
       })
       .on("click", (e, d) => {
+        if (layers.has("crosshair") && mobile) return
         setDrawerOpen()
         // if (mobile) return
         const zoom = 3
@@ -367,9 +453,10 @@ function Map({ width, height }) {
       .attr('stroke', 'black')
       .style('opacity', 1)
       .on("click", (e, d) => {
+        if (layers.has("crosshair") && mobile) return
 
         // TODO: find way to keep drawer open if already open and clicking on another point
-        const drawerOpenReal = document.querySelector(".map-sheet")?.getAttribute("data-state") || false
+        // const drawerOpenReal = document.querySelector(".map-sheet")?.getAttribute("data-state") || false
         // console.log("drawer open", drawerOpenReal)
 
         // add nearby locations to drawer
@@ -440,6 +527,13 @@ function Map({ width, height }) {
 
     zoomGlobal = zoom
     svg.call(zoom)
+
+    // allow for enabling crosshair from URL
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('c') && !layers.has("crosshair")) {
+      document.getElementById("crosshair-checkbox").checked = true;
+      updateLayerOpacity('crosshair')
+    }
   }, [])
 
   return (
@@ -477,6 +571,10 @@ function Map({ width, height }) {
           <div>
             <input type="checkbox" onChange={() => updateLayerOpacity('background')} defaultChecked />
             <label> Background</label>
+          </div>
+          <div>
+            <input type="checkbox" id="crosshair-checkbox" onChange={() => updateLayerOpacity('crosshair')} />
+            <label> Find Coordinates</label>
           </div>
         </div >
       </div>
