@@ -35,7 +35,8 @@ function getColor({ name, type }, stroke) {
   }
 }
 
-export default function WaitForScreen() {
+
+export default function WaitForScreen({ panX, panY }) {
   const [size, setSize] = useState()
 
   useEffect(() => {
@@ -56,13 +57,14 @@ export default function WaitForScreen() {
   )
 
   return (
-    <Map width={size} height={size} />
+    <Map width={size} height={size} panX={panX} panY={panY} />
   )
 }
 
-function Map({ width, height }) {
+function Map({ width, height, panX, panY }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
+  let zoomGlobal
 
   function setLabelOpactiy(zoomLevel) {
     const g = d3.select(gRef.current)
@@ -331,6 +333,11 @@ function Map({ width, height }) {
 
     zoomGlobal = zoom
     svg.call(zoom)
+
+
+    const [x, y] = projection([panX, panY])
+    const transform = d3.zoomIdentity.translate(width / 2 - x * 3, height / 2 - y * 3).scale(3)
+    svgGlobal.transition().duration(750).call(zoomGlobal.transform, transform)
   }, [])
 
   return (

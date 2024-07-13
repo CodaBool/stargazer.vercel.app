@@ -1,6 +1,16 @@
 # TODO
 - see what github actions I could start on
+  - can perform `pg_dump -h host -U user -t 'public."Location"' -t 'public."Comment"' --column-inserts --data-only --no-owner --no-privileges postgres | grep '^INSERT' > backup.sql` to dump public data
 - mobile cant handle resize events for its menubar
+- separate out existing and non-existing locations
+- do a star if capital, also handle KTB or long rim complexities (1-8)
+
+# Path to full release
+3. run tests
+4. ask 2 contributors how things look, and ask about Hercynia
+5. add GH actions automation
+6. create wiki
+7. Post on Reddit and Lancer discord
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
@@ -51,4 +61,4 @@ bunx prisma generate
 bunx prisma migrate dev
 
 bunx prisma db pull && bunx prisma generate
-bunx prisma migrate dev --name rm_priority && bunx prisma generate
+bunx prisma migrate dev --name alias_nullable && bunx prisma generate

@@ -32,6 +32,7 @@ model Location {
   published   Boolean   @default(false)
   resolved    Boolean   @default(false)
   thirdParty  Boolean   @default(false)
+  alias       String?   @db.VarChar(50)
   map         String
   comments    Comment[]
   user        User      @relation(fields: [userId], references: [id])

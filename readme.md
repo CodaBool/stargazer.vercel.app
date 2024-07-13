@@ -1,6 +1,3 @@
-# 🚧 Under Active Development
-> expect things to change drastically until the end of 2024
-
 # 🗺️ Community VTT RPG maps
 > A spot for any RPG community to create accurate maps and keep them up to date.
 

@@ -78,7 +78,7 @@ export default function CreateComment({ map, locationId }) {
                 </Button>
               </Link>
             </div>
-            <CardDescription>Add context to this location. Selecting written text allows for rich editing.</CardDescription>
+            <CardDescription>Selecting written text allows for rich editing.</CardDescription>
           </CardHeader>
           <CardContent>
             <FormField

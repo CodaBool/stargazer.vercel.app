@@ -20,8 +20,9 @@ import { getServerSession } from "next-auth"
 import DOMPurify from "isomorphic-dompurify"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import db from "@/lib/db"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Star } from "lucide-react"
 import MiniMap from "@/components/minimap"
+import { adminIds } from "@/lib/utils"
 
 export default async function Location({ params, searchParams }) {
   const session = await getServerSession(authOptions)
@@ -101,8 +102,12 @@ export default async function Location({ params, searchParams }) {
       </Link>
       <Card className="">
         <CardHeader>
-          <CardTitle>{location.name}</CardTitle>
-          <div className="text-gray-400">{location.type} {location.thirdParty && <Badge variant="destructive" className="ml-4">unofficial</Badge>}</div>
+          <CardTitle>
+            {location.name}
+            {!location.published && <Badge variant="secondary" className="mx-4">Pending Review</Badge>}
+            {location.thirdParty && <Badge variant="destructive" className="">Unofficial</Badge>}
+          </CardTitle>
+          <div className="text-gray-400">{location.type}</div>
           <span className="">Coordinates: <span className="text-gray-400">{location.coordinates}</span></span>
           {location.faction && <span className="inline">Faction: <span className="text-gray-400 inline">{location.faction}</span></span>}
           <span className="">Source: <span className="text-gray-400">{location.source}</span></span>
@@ -113,7 +118,7 @@ export default async function Location({ params, searchParams }) {
           <AccordionItem value="item-1">
             <AccordionTrigger>See map</AccordionTrigger>
             <AccordionContent className="map-container flex justify-around">
-              <MiniMap />
+              <MiniMap panX={Number(location.coordinates.split(",")[0].trim())} panY={Number(location.coordinates.split(",")[1].trim())} />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -141,7 +146,8 @@ export default async function Location({ params, searchParams }) {
                       ]}
                     />
                     <h2 className="font-bold text-lg mx-2">{comment.alias}</h2>
-                    {!comment.published && <Badge>Pending Review</Badge>}
+                    {!comment.published && <Badge variant="secondary">Pending Review</Badge>}
+                    {adminIds.includes(comment.userId) && <Badge variant="secondary" className="mx-2"><Star size={12} /></Badge>}
                   </div>
                   <div className="location-description border border-gray-800 rounded-2xl p-3 md:mx-6 bg-[#02050D]" dangerouslySetInnerHTML={{ __html: comment.content }}></div>
                 </div>
