@@ -8,14 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Card,
   CardContent,
@@ -24,14 +16,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { toast } from "sonner"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 import { useForm } from "react-hook-form"
 import { LoaderCircle, User, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Avatar from 'boring-avatars'
 
 export default function CreateLocation({ user }) {
@@ -40,8 +32,6 @@ export default function CreateLocation({ user }) {
   // TODO: pick on toast method
   const { toast: toasty } = useToast()
   const form = useForm()
-
-  // console.log("email", user.email, " | alias", user.alias, " | avatar", user.avatar)
 
   async function submit(body) {
     if (!body.alias.trim()) {
@@ -60,17 +50,12 @@ export default function CreateLocation({ user }) {
     })
     const response = await res.json()
     setSubmitting(false)
-    // TODO: type selection doesn't get reset to "Type"'
-    // form.reset()
     if (response.msg === "success") {
-      toast(`Profile successfully updated`)
+      toast.success("Profile successfully updated")
       router.refresh()
     } else {
-      toasty({
-        variant: "destructive",
-        title: "Could not update profile",
-        description: response.err,
-      })
+      console.error(response.err)
+      toast.warning("Could not update profile at this time")
     }
   }
 
@@ -132,7 +117,7 @@ export default function CreateLocation({ user }) {
           <CardFooter>
             <Button disabled={submitting} type="submit" variant="outline" className="w-full">
               {submitting
-                ? <LoaderCircle className="animate-spin w-16 h-16" />
+                ? <LoaderCircle className="animate-spin" />
                 : "Save Changes"
               }
             </Button>

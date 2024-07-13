@@ -27,7 +27,7 @@ export const authOptions = {
   adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
-    maxAge: 31556952, // in seconds (31,556,952 = 1 year), comment out for added security
+    maxAge: 31556952, // in seconds (31,556,952 = 1 year)
   },
   providers: [{
     id: "http-email",

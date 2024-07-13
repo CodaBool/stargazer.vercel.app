@@ -10,13 +10,19 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar"
-import { Heart, Github, Copyright, History, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut, LogIn } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Heart, Github, Copyright, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut } from "lucide-react"
 import SearchDialog from './dialog'
-import CustomDialog from './contribute'
 import Link from "next/link"
-import { signIn, signOut, useSession } from "next-auth/react"
-import { Button } from "./ui/button"
-import { maps } from "@/lib/utils"
+import { signOut, useSession } from "next-auth/react"
 
 export default function Menu({ path, map }) {
   const { data: session, status } = useSession()
@@ -171,14 +177,21 @@ function AboutMenu() {
           <MenubarItem inset className="cursor-pointer"><BookOpen size={16} className="inline mr-1" /> Wiki</MenubarItem>
         </a>
 
-        <CustomDialog
-          titleJSX={<><Heart size={18} className="pe-[2px] animate-bounce inline mr-2" />Credits</>}
-          content={<Credits />}
-        >
-          <span className="relative left-[-25px]">
-            <Heart size={16} className="relative top-[-1px] pe-[2px] ml-[1em] inline" /> Credits
-          </span >
-        </CustomDialog>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" className="w-full pl-0">
+              <Heart size={16} className="relative top-[-1px] pe-[2px] inline" /> Credits
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]" style={{ color: 'white' }}>
+            <DialogHeader>
+              <DialogTitle><><Heart size={18} className="pe-[2px] animate-bounce inline mr-2" /> Credits</></DialogTitle>
+              <DialogDescription className="py-6">
+                <Credits />
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </MenubarSubContent>
     </MenubarSub>
   )

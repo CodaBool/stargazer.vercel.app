@@ -35,7 +35,7 @@ export async function POST(req) {
         data: {
           userId: user.id,
           content: body.content,
-          locationId: body.locationId,
+          locationId: Number(body.locationId),
           published,
         }
       })
@@ -43,24 +43,43 @@ export async function POST(req) {
     if (!response) throw "could not create new row"
 
     if (!published) {
-      // email for review
-      body.links = {
-        map: `https://community-maps.vercel.app/${body.map}`,
-        publish: `https://community-maps.vercel.app/api/contribute?type=${body.table}&id=${response.id}&secret=${process.env.EMAIL_SECRET}`,
-      }
       // send email for review
       const urlParams = new URLSearchParams({
         subject: `New ${body.map} ${body.table} for review`,
-        to: "codabool@pm.me",
+        to: process.env.EMAIL,
         name: user.alias ? user.alias : user.email,
         from: user.email,
-        format: "text/plain",
         secret: process.env.EMAIL_SECRET,
       }).toString()
 
+      let html = `
+        <h1><a href="https://stargazer.vercel.app/${body.map}">${body.map.toUpperCase()}</a></h1>
+        <a href="https://stargazer.vercel.app/api/contribute?type=${body.table}&id=${response.id}&secret=${process.env.EMAIL_SECRET}">approve?</a>
+        <h1>User</h1>
+        <p><strong>userId:</strong> ${user.id}</p>
+        <p><strong>email:</strong> ${session.user.email}</p>
+        <p><strong>alias:</strong> ${user.alias}</p>
+        <p><strong>number of published comments:</strong> ${publishedComments.length}</p>
+      `
+      if (body.table === "comment") {
+        html += `<h1 style="margin-top: 1em">Comment</h1>
+          <div style="margin: 1em; border: 1px solid; padding: 1em">${body.content}</div>
+        `
+      } else {
+        html += `<h1>Location</h1>
+          <p><strong>name:</strong> ${body.name}</p>
+          <p><strong>type:</strong> ${body.type}</p>
+          <p><strong>coordinates:</strong> ${body.coordinates}</p>
+          <p><strong>thirdParty:</strong> ${body.thirdParty ? "true" : "false"}</p>
+          <p><strong>faction:</strong> ${body.faction}</p>
+          <p><strong>source:</strong> ${body.source}</p>
+          <p><strong>locationId:</strong> ${response.id}</p>
+          <div style="margin: 1em; border: 1px solid; padding: 1em">${body.description}</div>
+        `
+      }
+
       const email = await fetch(`https://email.codabool.workers.dev/?${urlParams}`, {
-        body: JSON.stringify(body),
-        headers: { 'Content-Type': 'application/json' },
+        body: html,
         method: "POST",
       })
 

@@ -20,7 +20,7 @@ export default function DialogBtn({ zoom, width, height, svg, projection }) {
     function down(e) {
       if (e.code === 'Space') {
         if (open) return
-        // the location list is short if this timeout is not present 🤷
+        // BUG: the location list has missing items if a timeout is not used
         setTimeout(() => {
           setOpen(true)
         }, 0)

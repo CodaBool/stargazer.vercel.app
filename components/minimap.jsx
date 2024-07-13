@@ -1,22 +1,9 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, memo, useRef } from 'react'
 import * as topojson from 'topojson-client'
 import * as d3 from 'd3'
-import { geography, points } from "../data.js"
-import { isMobile } from '@/lib/utils.js'
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import { ChevronLeft, LoaderCircle, Menu } from 'lucide-react'
-import { Badge } from '@/components/ui/badge.jsx'
+import { geography, points } from "@/app/data.js"
+import { LoaderCircle } from 'lucide-react'
 
 const world = topojson.feature(geography, geography.objects.collection)
 const lines = topojson.feature(geography, geography.objects.lines)
@@ -24,69 +11,8 @@ const pointsGeo = topojson.feature(points, points.objects.collection)
 let touchStartTimeout = null
 const scale = 400
 let projection, svgGlobal, zoomGlobal
-const layers = new Set(["unofficial", "guide", "background"])
+const layers = new Set(["unofficial", "guide", "background", "crosshair"])
 const center = [-78, 26]
-const MENU_HEIGHT_PX = 40
-const TOOLTIP_WIDTH_PX = 150
-const TOOLTIP_HEIGHT_PX = 160
-const TOOLTIP_Y_OFFSET = 50
-const DRAWER_OFFSET_PX = 100
-
-function useScreen() {
-  const [screenSize, setScreenSize] = useState()
-
-  useEffect(() => {
-    setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    const handleResize = () => {
-      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  if (!screenSize) return null
-
-  return ({
-    height: screenSize.height - MENU_HEIGHT_PX,
-    width: screenSize.width,
-  })
-}
-
-const Tooltip = ({ name, type, faction, destroyed, thirdParty }) => {
-  if (!name) return (<div className="map-tooltip"></div>)
-  return (
-    <div className="map-tooltip p-5 rounded-2xl absolute bg-black" style={{ border: '1px dashed gray', visibility: "hidden" }}>
-      <p className='font-bold text-center'>{name}</p>
-      <p className="text-center text-gray-400">{type}</p>
-      <div className="flex flex-col items-center">
-        {thirdParty && <Badge variant="destructive" className="mx-auto my-1">unofficial</Badge>}
-        {faction && <Badge className="mx-auto my-1">{faction}</Badge>}
-        {destroyed && <Badge variant="secondary" className="mx-auto my-1">destroyed</Badge>}
-      </div>
-    </div>
-  );
-};
-
-const DrawContent = ({ locations }) => {
-  return (
-    <div className="flex flex-wrap justify-center">
-      {locations?.map(location => {
-        return (
-          <Card key={location.name} className="min-h-[80px] m-2 min-w-[150px]">
-            <CardContent className="p-2 text-center">
-              {location.thirdParty && <Badge variant="destructive" className="mx-auto">unofficial</Badge>}
-              <p className="font-bold text-xl text-center">{location.name}</p>
-              <p className="text-center text-gray-400">{location.type}</p>
-              {location.faction && <Badge className="mx-auto">{location.faction}</Badge>}
-              {location.destroyed && <Badge className="mx-auto">destroyed</Badge>}
-
-            </CardContent>
-          </Card >
-        )
-      })}
-    </div>
-  )
-}
 
 function getColor({ name, type }, stroke) {
   if (stroke) {
@@ -109,85 +35,34 @@ function getColor({ name, type }, stroke) {
   }
 }
 
-function positionTooltip(e) {
-  const tt = document.querySelector(".map-tooltip")
-  if (e.pageX + TOOLTIP_WIDTH_PX / 2 > window.innerWidth) {
-    // left view, since it's too far right
-    tt.style.left = (e.pageX - TOOLTIP_WIDTH_PX - TOOLTIP_Y_OFFSET) + "px"
-  } else if (e.pageX - TOOLTIP_WIDTH_PX / 2 < 0) {
-    // right view, since it's too far left
-    tt.style.left = (e.pageX + TOOLTIP_Y_OFFSET) + "px"
-  } else {
-    // clear space, use center view
-    tt.style.left = (e.pageX - tt.offsetWidth / 2) + "px"
-  }
-  if (e.pageY + TOOLTIP_HEIGHT_PX + TOOLTIP_Y_OFFSET > window.innerHeight) {
-    // top view, since it's too low
-    tt.style.top = (e.pageY - TOOLTIP_Y_OFFSET - TOOLTIP_HEIGHT_PX) + "px"
-  } else {
-    // clear space, use bottom view
-    tt.style.top = (e.pageY + TOOLTIP_Y_OFFSET) + "px"
-  }
-  tt.style.visibility = "visible"
-}
-
 export default function WaitForScreen() {
-  const screen = useScreen()
-  if (!screen) return (
+  const [size, setSize] = useState()
+
+  useEffect(() => {
+    if (document.querySelector(".map-container")) {
+      const width = document.querySelector(".map-container").clientWidth
+      if (width < 500) {
+        setSize(width)
+      } else {
+        setSize(width - 100)
+      }
+    }
+  }, [])
+
+  if (!size) return (
     <div className="flex items-center justify-center mt-[40vh]">
       <LoaderCircle className="w-16 h-16 animate-spin" />
     </div>
   )
+
   return (
-    <Map width={screen.width} height={screen.height} />
+    <Map width={size} height={size} />
   )
-}
-
-function getResizeOffsets(width, height) {
-  return {
-    resizeOffsetX: (window.innerWidth - width) / 2,
-    resizeOffsetY: (window.innerHeight - MENU_HEIGHT_PX - height) / 2,
-  }
-}
-
-export function panTo(location) {
-  const point = pointsGeo.features.find(g => (
-    g.properties.name === location
-  )).geometry.coordinates
-  const [x, y] = projection(point)
-  const transform = d3.zoomIdentity.translate(window.innerWidth / 2 - x * 3, (window.innerHeight - MENU_HEIGHT_PX) / 2 - y * 3).scale(3)
-  svgGlobal.transition().duration(750).call(zoomGlobal.transform, transform)
 }
 
 function Map({ width, height }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
-  const resizeTimeout = useRef(null)
-  const mobile = isMobile()
-  const [tooltip, setTooltip] = useState()
-  const [drawerOpen, setDrawerOpen] = useState()
-  const [drawerContent, setDrawerContent] = useState()
-  const [showControls, setShowControls] = useState()
-
-  function updateLayerOpacity(layer) {
-    const svg = d3.select(svgRef.current)
-    const group = svg.selectAll(`.${layer}`)
-    if (layers.has(layer)) {
-      layers.delete(layer)
-      if (layer === "background") {
-        svg.attr("style", "background: black")
-      }
-      group.transition().duration(750).style("opacity", 0)
-    } else {
-      layers.add(layer)
-      if (layer === "background") {
-        svg.attr("style", "background: radial-gradient(#000A2E 0%, #000000 100%)")
-      }
-      group.transition().duration(750).style("opacity", 1)
-    }
-    const zoomLevel = d3.zoomTransform(svgRef.current).k
-    setLabelOpactiy(zoomLevel)
-  }
 
   function setLabelOpactiy(zoomLevel) {
     const g = d3.select(gRef.current)
@@ -219,37 +94,14 @@ function Map({ width, height }) {
   }
 
   useEffect(() => {
-    // has issues on mobile, just disable
-    if (!svgRef.current || !zoomGlobal || !projection || mobile) return
-    setTooltip()
-    positionTooltip({ pageX: 0, pageY: 0 })
-
-    // recenter back on Cradle if the window is resized
-    // TODO: support mobile landscape (currently is offcentered)
-    const [x, y] = projection([-78.01, 48.5])
-
-    // debounce the resize events
-    clearTimeout(resizeTimeout.current)
-    resizeTimeout.current = setTimeout(() => {
-      const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
-      if (Math.abs(width / 2 - x + resizeOffsetX) < 2 && Math.abs(height / 2 - y - 200 + resizeOffsetY) < 2) return
-      console.log("window resized, recentering by", Math.floor(width / 2 - x + resizeOffsetX), Math.floor(height / 2 - y - 200 + resizeOffsetY))
-      const transform = d3.zoomIdentity.translate(width / 2 - x + resizeOffsetX, height / 2 - y - 200 + resizeOffsetY).scale(1)
-      d3.select(svgRef.current).transition().duration(500).call(zoomGlobal.transform, transform)
-    }, 250)
-  }, [width, height])
-
-  useEffect(() => {
     const svg = d3.select(svgRef.current)
     const g = d3.select(gRef.current)
     svgGlobal = svg
     projection = d3.geoMercator().scale(scale).center(center).translate([width / 2, height / 2])
     const pathGenerator = d3.geoPath().projection(projection)
 
-    // styling
-    // background color
-    svg.attr("style", "background: radial-gradient(#000A2E 0%, #000000 100%)")
 
+    svg.attr("style", "background: radial-gradient(#000A2E 0%, #000000 100%)")
     // stars
     // scale for number of pixels
     // TODO: test this on more devices / DPIs
@@ -307,7 +159,10 @@ function Map({ width, height }) {
       if (!layers.has("crosshair")) return
       // use a timeout since touchmove will begin with a touchstart and override
       touchStartTimeout = setTimeout(() => {
-        const [touchX, touchY] = [e.touches[0].clientX, e.touches[0].clientY];
+        // since the map is not taking the full screen, adjust for the parent nodes
+        const rect = svg.node().getBoundingClientRect()
+        const touchX = e.touches[0].clientX - rect.left
+        const touchY = e.touches[0].clientY - rect.top
         crosshairX.attr('y1', touchY).attr('y2', touchY).style('visibility', 'visible')
         crosshairY.attr('x1', touchX).attr('x2', touchX).style('visibility', 'visible')
         const transform = d3.zoomTransform(svg.node());
@@ -357,34 +212,11 @@ function Map({ width, height }) {
       .on("mouseover", (e, d) => {
         d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.5)')
         d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .7)')
-        if (mobile) return
-        setTooltip(d.properties)
-        positionTooltip(e)
-      })
-      .on("click", (e, d) => {
-        if (layers.has("crosshair") && mobile) return
-        setDrawerOpen()
-        // if (mobile) return
-        const zoom = 3
-        const [x, y] = pathGenerator.centroid(d)
-
-        const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
-
-        console.log("moving to group", d.properties.name, Math.floor(width / 2 - x * zoom + resizeOffsetX), Math.floor(height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY))
-        const transform = d3.zoomIdentity.translate(width / 2 - x * zoom + resizeOffsetX, height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY).scale(zoom)
-        svg.transition().duration(750).call(zoomGlobal.transform, transform)
-
-        setDrawerContent({ locations: [d.properties], coordinates: projection.invert([x, y]) })
-        setDrawerOpen(true)
-
       })
       .on("mouseout", (e, d) => {
         d3.select(e.currentTarget).attr('fill', getColor(d.properties, false))
         d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
-        setTooltip()
-        document.querySelector(".map-tooltip").style.visibility = "hidden"
       })
-      .on("mousemove", e => positionTooltip(e))
 
     g.selectAll('.lines-label')
       .data(lines.features)
@@ -425,6 +257,7 @@ function Map({ width, height }) {
     g.selectAll('.group-label')
       .data(world.features)
       .enter().append('text')
+      // .attr('class', 'country-label country-layer')
       .attr('class', d => d.properties.unofficial ? 'unofficial group-label' : 'group-label')
       .attr('x', d => pathGenerator.centroid(d)[0])
       .attr('y', d => pathGenerator.centroid(d)[1])
@@ -440,6 +273,7 @@ function Map({ width, height }) {
       .data(pointsGeo.features)
       .enter()
       .append(d => d.properties.type === 'gate' ? document.createElementNS(d3.namespaces.svg, 'rect') : document.createElementNS(d3.namespaces.svg, 'circle'))
+      // .attr('class', 'point point-layer')
       .attr('class', d => d.properties.unofficial ? 'unofficial point' : 'point')
       .attr('r', d => d.properties.type !== 'gate' ? 5 : null)
       .attr('cx', d => d.properties.type !== 'gate' ? projection(d.geometry.coordinates)[0] : null)
@@ -451,44 +285,14 @@ function Map({ width, height }) {
       .attr('fill', d => d.properties.type === 'gate' ? 'teal' : 'slategray')
       .attr('stroke', 'black')
       .style('opacity', 1)
-      .on("click", (e, d) => {
-        if (layers.has("crosshair") && mobile) return
-
-        // TODO: find way to keep drawer open if already open and clicking on another point
-        // const drawerOpenReal = document.querySelector(".map-sheet")?.getAttribute("data-state") || false
-        // console.log("drawer open", drawerOpenReal)
-
-        // add nearby locations to drawer
-        const locations = pointsGeo.features.filter(p => {
-          return Math.sqrt(
-            Math.pow(p.geometry.coordinates[0] - d.geometry.coordinates[0], 2) +
-            Math.pow(p.geometry.coordinates[1] - d.geometry.coordinates[1], 2)
-          ) <= 1
-        }).map(p => p.properties)
-        setDrawerContent({ locations, coordinates: d.geometry.coordinates })
-        setDrawerOpen(true)
-        // if (mobile) return
-        const zoom = 3
-        const [x, y] = projection(d.geometry.coordinates)
-        const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
-        console.log("moving to point", d.properties.name, Math.floor(width / 2 - x * zoom + resizeOffsetX), Math.floor(height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY))
-        const transform = d3.zoomIdentity.translate(width / 2 - x * zoom + resizeOffsetX, height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY).scale(zoom)
-        svg.transition().duration(750).call(zoomGlobal.transform, transform)
-      })
       .on("mouseover", (e, d) => {
         d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.5)')
         d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .7)')
-        if (mobile) return
-        setTooltip(d.properties)
-        positionTooltip(e)
       })
       .on("mouseout", (e, d) => {
         d3.select(e.currentTarget).attr('fill', getColor(d.properties, false))
         d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
-        setTooltip()
-        document.querySelector(".map-tooltip").style.visibility = "hidden"
       })
-      .on("mousemove", e => positionTooltip(e))
 
     // Add text labels for points
     g.selectAll('.point-label')
@@ -519,69 +323,19 @@ function Map({ width, height }) {
         setLabelOpactiy(event.transform.k)
       })
       .on("start", () => {
-        document.querySelector(".map-tooltip").style.visibility = "hidden"
         svg.style("cursor", "grabbing")
       })
       .on("end", () => {
-
         svg.style("cursor", "grab")
       })
 
     zoomGlobal = zoom
     svg.call(zoom)
-
-    // allow for enabling crosshair from URL
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('c') && !layers.has("crosshair")) {
-      document.getElementById("crosshair-checkbox").checked = true;
-      updateLayerOpacity('crosshair')
-    }
   }, [])
 
   return (
-    <>
-      <Tooltip {...tooltip} />
-
-      <Sheet onOpenChange={setDrawerOpen} open={drawerOpen} modal={false} style={{ color: 'white' }} >
-        <SheetContent side="bottom" style={{ maxHeight: '50vh', overflowY: 'auto' }} className="map-sheet">
-          <SheetHeader >
-            <SheetTitle className="text-center">{drawerContent?.coordinates ? `x: ${Math.floor(drawerContent.coordinates[0])}, y: ${Math.floor(drawerContent.coordinates[1])}` : 'unknown'}</SheetTitle>
-            <SheetDescription />
-          </SheetHeader >
-          <DrawContent {...drawerContent} />
-        </SheetContent >
-      </Sheet >
-
-      <div style={{ position: 'absolute', top: '10vh', left: '10px', backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '8px' }}>
-        <button onClick={() => setShowControls(!showControls)} className='p-1 m-1'>
-          {showControls
-            ? <ChevronLeft size={28} />
-            : <Menu size={28} />
-          }
-        </button>
-        <div style={{ display: showControls ? 'block' : 'none' }} className='p-2'>
-          <div>
-            <input type="checkbox" onChange={() => updateLayerOpacity('unofficial')} defaultChecked />
-            <label> Unofficial</label>
-          </div>
-          <div>
-            <input type="checkbox" onChange={() => updateLayerOpacity('guide')} defaultChecked />
-            <label> Guides</label>
-          </div>
-          <div>
-            <input type="checkbox" onChange={() => updateLayerOpacity('background')} defaultChecked />
-            <label> Background</label>
-          </div>
-          <div>
-            <input type="checkbox" id="crosshair-checkbox" onChange={() => updateLayerOpacity('crosshair')} />
-            <label> Find Coordinates</label>
-          </div>
-        </div >
-      </div>
-
-      <svg ref={svgRef} width={width} height={height}>
-        <g ref={gRef}></g>
-      </svg>
-    </>
+    <svg ref={svgRef} width={width} height={height}>
+      <g ref={gRef}></g>
+    </svg>
   )
 }

@@ -33,21 +33,18 @@ model Location {
   resolved    Boolean   @default(false)
   thirdParty  Boolean   @default(false)
   map         String
-  priority    Boolean   @default(true)
   comments    Comment[]
   user        User      @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  emailVerified DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  alias         String?    @unique @db.VarChar(16)
-  avatar        String?
-  comments      Comment[]
-  locations     Location[]
+  id        String     @id @default(cuid())
+  email     String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  alias     String?    @unique @db.VarChar(16)
+  comments  Comment[]
+  locations Location[]
 }
 
 model VerificationToken {

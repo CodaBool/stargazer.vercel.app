@@ -18,7 +18,8 @@ body {
 /* contribute */
 .location-description {
   line-height: 1.8;
-  margin-left: 2em;
+  overflow: auto;
+  text-overflow: clip;
 }
 .location-description h1 {
   font-size: 2em;

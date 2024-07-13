@@ -68,15 +68,16 @@ export default function CreateLocation({ map }) {
     form.reset()
     if (response.msg) {
       toast.success(response.msg)
-      router.push(`/contribute/${map}?scroll=${window.scrollY}`)
+      router.push(`/contribute/${map}`)
     } else {
+      console.error(response.err)
       toast.warning("Could not create a new location at this time")
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(submit)} className="space-y-8 container mx-auto mt-4">
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-8 md:container mx-auto my-8">
         <Card className="mx-auto max-w-2xl">
           <CardHeader>
             <div className="flex items-center justify-between">

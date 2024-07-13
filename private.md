@@ -1,7 +1,6 @@
 # TODO
 - see what github actions I could start on
 - mobile cant handle resize events for its menubar
-- make https links clickable
 
 # Links
 - map editors 1 https://www.reddit.com/r/mapmaking/wiki/index/#wiki_1.0_links
@@ -10,7 +9,7 @@
 - react package for maps https://www.react-simple-maps.io/docs/geographies
 - nextjs https://nextjs.org/docs/getting-started/installation
 - shadcn https://ui.shadcn.com/docs/components/tooltip
-- https://jeffpaine.github.io/geojson-topojson/
+- geo to topo convert https://jeffpaine.github.io/geojson-topojson/
 - json minify https://codebeautify.org/jsonminifier
 - icons https://lucide.dev/icons
 - tailwind cheatsheet https://nerdcave.com/tailwind-cheat-sheet
@@ -52,4 +51,4 @@ bunx prisma generate
 bunx prisma migrate dev
 
 bunx prisma db pull && bunx prisma generate
-bunx prisma migrate dev --name char_limits && bunx prisma generate
+bunx prisma migrate dev --name rm_priority && bunx prisma generate

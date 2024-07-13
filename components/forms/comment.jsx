@@ -20,10 +20,12 @@ import { Button } from "@/components/ui/button"
 import { useSession, signIn } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { LoaderCircle, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import dynamic from "next/dynamic"
+import Link from "next/link"
+import 'react-quill/dist/quill.bubble.css'
 
-export default function CreateComment({ map, location }) {
+export default function CreateComment({ map, locationId }) {
   const Editor = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), [])
   const { data: session, status } = useSession()
   const [submitting, setSubmitting] = useState()
@@ -33,7 +35,7 @@ export default function CreateComment({ map, location }) {
   async function submit(body) {
     body.table = "comment"
     body.map = map
-    body.locationId = location.id
+    body.locationId = Number(locationId)
     setSubmitting(true)
     const res = await fetch('/api/contribute', {
       method: 'POST',
@@ -41,25 +43,16 @@ export default function CreateComment({ map, location }) {
     })
     const response = await res.json();
     setSubmitting(false)
-    // TODO: type selection doesn't get reset to "Type"'
     form.reset()
     if (response.msg) {
       toast.success(response.msg)
       // TODO: this doesn't close comment form
       router.refresh()
-      router.push(`/contribute/${map}?scroll=${window.scrollY}`)
     } else {
+      console.error(response.err)
       toast.warning("Could not create a new comment at this time")
     }
   }
-
-  useEffect(() => {
-    // scroll to newly opened comment form
-    const el = document.querySelector(`.location-${location.id}`)
-    if (!el) return
-    el.scrollIntoView()
-  }, [])
-
 
   if (status === "unauthenticated") {
     signIn()
@@ -79,12 +72,11 @@ export default function CreateComment({ map, location }) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Create Comment</CardTitle>
-              <Button variant="ghost" onClick={e => {
-                e.preventDefault()
-                router.push(`/contribute/${map}?scroll=${window.scrollY}`)
-              }}>
-                <X />
-              </Button>
+              <Link href={`/contribute/${map}/${locationId}`}>
+                <Button variant="ghost">
+                  <X />
+                </Button>
+              </Link>
             </div>
             <CardDescription>Add context to this location. Selecting written text allows for rich editing.</CardDescription>
           </CardHeader>
