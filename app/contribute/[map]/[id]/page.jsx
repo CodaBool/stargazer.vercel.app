@@ -108,7 +108,7 @@ export default async function Location({ params, searchParams }) {
             {location.thirdParty && <Badge variant="destructive" className="">Unofficial</Badge>}
           </CardTitle>
           <div className="text-gray-400">{location.type}</div>
-          <span className="">Coordinates: <span className="text-gray-400">{location.coordinates}</span></span>
+          <span className="">Coordinates: <span className="text-gray-400">{Math.floor(Number(location.coordinates.split(",")[0]))} {Math.floor(Number(location.coordinates.split(",")[1]))}</span></span>
           {location.faction && <span className="inline">Faction: <span className="text-gray-400 inline">{location.faction}</span></span>}
           <span className="">Source: <span className="text-gray-400">{location.source}</span></span>
         </CardHeader>

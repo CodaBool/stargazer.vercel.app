@@ -335,7 +335,31 @@ function Map({ width, height, panX, panY }) {
     svg.call(zoom)
 
 
+    // add a circle on the given coordinate
     const [x, y] = projection([panX, panY])
+    const marker = g.append('circle')
+      .attr('class', 'marker')
+      .attr('cx', x)
+      .attr('cy', y)
+      .attr('r', 5)
+      .style('fill', 'red')
+      .attr('stroke', 'black')
+
+    // Animate the marker
+    const animateMarker = () => {
+      marker.transition()
+        .duration(1000)
+        .attr('r', 7)
+        .style('fill', '#FF7D7D')
+        .transition()
+        .duration(1000)
+        .attr('r', 5)
+        .style('fill', '#F4AF54')
+        .on('end', animateMarker);
+    }
+    animateMarker()
+
+
     const transform = d3.zoomIdentity.translate(width / 2 - x * 3, height / 2 - y * 3).scale(3)
     svgGlobal.transition().duration(750).call(zoomGlobal.transform, transform)
   }, [])

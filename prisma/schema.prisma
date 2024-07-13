@@ -25,7 +25,7 @@ model Location {
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
   description String    @db.VarChar(3000)
   type        String    @db.VarChar(25)
-  coordinates String    @db.VarChar(25)
+  coordinates String    @db.VarChar(35)
   faction     String    @db.VarChar(50)
   source      String    @db.VarChar(100)
   userId      String
