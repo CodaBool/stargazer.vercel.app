@@ -4,26 +4,16 @@ import * as topojson from 'topojson-client'
 import * as d3 from 'd3'
 import { geography, points } from "../data.js"
 import { isMobile } from '@/lib/utils.js'
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { ChevronLeft, LoaderCircle, Menu } from 'lucide-react'
 import { Badge } from '@/components/ui/badge.jsx'
+import Sheet from '@/components/sheet'
 
 const world = topojson.feature(geography, geography.objects.collection)
 const lines = topojson.feature(geography, geography.objects.lines)
 const pointsGeo = topojson.feature(points, points.objects.collection)
 let touchStartTimeout = null
 const scale = 400
-let projection, svgGlobal, zoomGlobal
+let projection, svgGlobal, zoomGlobal, holdTimer
 const layers = new Set(["unofficial", "guide", "background"])
 const center = [-78, 26]
 const MENU_HEIGHT_PX = 40
@@ -66,27 +56,6 @@ const Tooltip = ({ name, type, faction, destroyed, thirdParty }) => {
     </div>
   );
 };
-
-const DrawContent = ({ locations }) => {
-  return (
-    <div className="flex flex-wrap justify-center">
-      {locations?.map(location => {
-        return (
-          <Card key={location.name} className="min-h-[80px] m-2 min-w-[150px]">
-            <CardContent className="p-2 text-center">
-              {location.thirdParty && <Badge variant="destructive" className="mx-auto">unofficial</Badge>}
-              <p className="font-bold text-xl text-center">{location.name}</p>
-              <p className="text-center text-gray-400">{location.type}</p>
-              {location.faction && <Badge className="mx-auto">{location.faction}</Badge>}
-              {location.destroyed && <Badge className="mx-auto">destroyed</Badge>}
-
-            </CardContent>
-          </Card >
-        )
-      })}
-    </div>
-  )
-}
 
 function getColor({ name, type }, stroke) {
   if (stroke) {
@@ -143,13 +112,6 @@ export default function WaitForScreen() {
   )
 }
 
-function getResizeOffsets(width, height) {
-  return {
-    resizeOffsetX: (window.innerWidth - width) / 2,
-    resizeOffsetY: (window.innerHeight - MENU_HEIGHT_PX - height) / 2,
-  }
-}
-
 export function panTo(location) {
   const point = pointsGeo.features.find(g => (
     g.properties.name === location
@@ -159,9 +121,19 @@ export function panTo(location) {
   svgGlobal.transition().duration(750).call(zoomGlobal.transform, transform)
 }
 
+function getResizeOffsets(width, height) {
+  return {
+    resizeOffsetX: (window.innerWidth - width) / 2,
+    resizeOffsetY: (window.innerHeight - MENU_HEIGHT_PX - height) / 2,
+  }
+}
+
 function Map({ width, height }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
+  const pointRef1 = useRef(null)
+  const lineRef = useRef(null)
+  const textRef = useRef(null)
   const resizeTimeout = useRef(null)
   const mobile = isMobile()
   const [tooltip, setTooltip] = useState()
@@ -174,16 +146,28 @@ function Map({ width, height }) {
     const group = svg.selectAll(`.${layer}`)
     if (layers.has(layer)) {
       layers.delete(layer)
-      if (layer === "background") {
-        svg.attr("style", "background: black")
-      }
       group.transition().duration(750).style("opacity", 0)
     } else {
       layers.add(layer)
       if (layer === "background") {
         svg.attr("style", "background: radial-gradient(#000A2E 0%, #000000 100%)")
+      } else if (layer === "measure") {
+        pointRef1.current.style.visibility = 'visible'
+        layers.delete("crosshair")
+        document.getElementById("crosshair-checkbox").checked = false;
+      } else if (layer === "crosshair") {
+        layers.delete("measure")
+        document.getElementById("measure-checkbox").checked = false;
       }
       group.transition().duration(750).style("opacity", 1)
+    }
+
+    if (!layers.has("measure")) {
+      pointRef1.current.style.visibility = 'hidden'
+      lineRef.current.style.visibility = 'hidden'
+      textRef.current.style('visibility', 'hidden')
+    } else if (!layers.has("background")) {
+      svg.attr("style", "background: black")
     }
     const zoomLevel = d3.zoomTransform(svgRef.current).k
     setLabelOpactiy(zoomLevel)
@@ -280,64 +264,153 @@ function Map({ width, height }) {
       .attr('pointer-events', 'none')
       .style('visibility', 'hidden')
 
-    const coordinatesText = svg.append('text')
-      .attr('class', 'coordinates-text')
+    textRef.current = svg.append('text')
       .attr('x', width / 2)
       .attr('y', 40)
       .attr('text-anchor', 'middle')
       .attr('fill', 'white')
       .attr('opacity', 0.7)
       .style('font-size', '30px')
-      .style('pointer-events', 'none');
+      .style('pointer-events', 'none')
+      .style('visibility', 'hidden')
 
     svg.on("mousemove", (e) => {
-      if (!layers.has("crosshair")) return
-      const [mouseX, mouseY] = d3.pointer(e)
-      crosshairX.attr('y1', mouseY).attr('y2', mouseY).style('visibility', 'visible')
-      crosshairY.attr('x1', mouseX).attr('x2', mouseX).style('visibility', 'visible')
+      if (mobile) return
+      if (layers.has("crosshair")) {
 
-      const transform = d3.zoomTransform(svg.node())
-      const transformedX = (mouseX - transform.x) / transform.k;
-      const transformedY = (mouseY - transform.y) / transform.k
-      const [x, y] = projection.invert([transformedX, transformedY])
-      coordinatesText.text(`X: ${Math.floor(x)}, Y: ${Math.floor(y)}`).style('visibility', 'visible')
-    });
-
-    svg.on("touchstart", (e) => {
-      if (!layers.has("crosshair")) return
-      // use a timeout since touchmove will begin with a touchstart and override
-      touchStartTimeout = setTimeout(() => {
-        const [touchX, touchY] = [e.touches[0].clientX, e.touches[0].clientY];
-        crosshairX.attr('y1', touchY).attr('y2', touchY).style('visibility', 'visible')
-        crosshairY.attr('x1', touchX).attr('x2', touchX).style('visibility', 'visible')
-        const transform = d3.zoomTransform(svg.node());
-        const transformedX = (touchX - transform.x) / transform.k;
-        const transformedY = (touchY - transform.y) / transform.k;
+        const [mouseX, mouseY] = d3.pointer(e)
+        const transform = d3.zoomTransform(svg.node())
+        const transformedX = (mouseX - transform.x) / transform.k;
+        const transformedY = (mouseY - transform.y) / transform.k
         const [x, y] = projection.invert([transformedX, transformedY])
-        coordinatesText.text(`X: ${Math.floor(x)}, Y: ${Math.floor(y)}`).style('visibility', 'visible')
-      }, 80)
+        crosshairX.attr('y1', mouseY).attr('y2', mouseY).style('visibility', 'visible')
+        crosshairY.attr('x1', mouseX).attr('x2', mouseX).style('visibility', 'visible')
+        textRef.current.text(`X: ${Math.floor(x)}, Y: ${Math.floor(y)}`).style('visibility', 'visible')
+
+      } else if (layers.has("measure")) {
+        if (textRef.current.style("visibility") === "hidden") {
+          return
+        }
+        if (lineRef.current.style.visibility === "hidden") {
+          lineRef.current.style.visibility = 'visible'
+        }
+        const [mouseX, mouseY] = d3.pointer(e)
+        const transform = d3.zoomTransform(svg.node())
+        const transformedX = (mouseX - transform.x) / transform.k;
+        const transformedY = (mouseY - transform.y) / transform.k
+        lineRef.current.setAttribute('x1', pointRef1.current.getAttribute('cx'));
+        lineRef.current.setAttribute('y1', pointRef1.current.getAttribute('cy'))
+        lineRef.current.setAttribute('x2', transformedX);
+        lineRef.current.setAttribute('y2', transformedY)
+        const point = projection.invert([pointRef1.current.getAttribute('cx'), pointRef1.current.getAttribute('cy')])
+        const point2 = projection.invert([transformedX, transformedY])
+        const lightYears = d3.geoDistance(point, point2) * 87 // 87 is arbitrary
+        const fastest = (lightYears / 0.995).toFixed(2);
+        textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years`).style('visibility', 'visible')
+      }
     })
+
+    // mobile "click"
+    svg.on("touchstart", (e) => {
+      if (layers.has("crosshair")) {
+        // use timeout because zooming and panning will also count as touch starts
+        touchStartTimeout = setTimeout(() => {
+          const [touchX, touchY] = [e.touches[0].clientX, e.touches[0].clientY];
+          crosshairX.attr('y1', touchY - MENU_HEIGHT_PX).attr('y2', touchY - MENU_HEIGHT_PX).style('visibility', 'visible')
+          crosshairY.attr('x1', touchX).attr('x2', touchX).style('visibility', 'visible')
+          const transform = d3.zoomTransform(svgRef.current);
+          const transformedX = (touchX - transform.x) / transform.k;
+          const transformedY = (touchY - transform.y - MENU_HEIGHT_PX) / transform.k;
+          const [x, y] = projection.invert([transformedX, transformedY])
+          textRef.current.text(`X: ${Math.floor(x)}, Y: ${Math.floor(y)}`).style('visibility', 'visible')
+        }, 80)
+      } else if (layers.has("measure")) {
+        const [mouseX, mouseY] = [e.touches[0].clientX, e.touches[0].clientY];
+        const transform = d3.zoomTransform(svgRef.current)
+        const transformedX = (mouseX - transform.x) / transform.k;
+        const transformedY = (mouseY - transform.y - MENU_HEIGHT_PX) / transform.k
+        const point = projection.invert([transformedX, transformedY])
+        const coord = projection(point)
+
+        holdTimer = setTimeout(() => {
+          textRef.current.style('visibility', 'visible')
+          pointRef1.current.style.visibility = 'visible'
+          d3.select(lineRef.current).raise()
+          d3.select(pointRef1.current).raise()
+
+          if (lineRef.current.x2.baseVal.value !== 0) {
+            // reset
+            pointRef1.current.setAttribute('cx', coord[0])
+            pointRef1.current.setAttribute('cy', coord[1])
+            lineRef.current.style.visibility = 'hidden'
+            lineRef.current.setAttribute('x1', coord[0]);
+            lineRef.current.setAttribute('y1', coord[1])
+            lineRef.current.setAttribute('x2', 0)
+            lineRef.current.setAttribute('y2', 0)
+          } else if (lineRef.current.x1.baseVal.value === 0) {
+            // first point
+            pointRef1.current.setAttribute('cx', coord[0])
+            pointRef1.current.setAttribute('cy', coord[1])
+            lineRef.current.setAttribute('x1', coord[0]);
+            lineRef.current.setAttribute('y1', coord[1])
+          } else {
+            // second point
+            lineRef.current.setAttribute('x2', transformedX);
+            lineRef.current.setAttribute('y2', transformedY)
+            lineRef.current.style.visibility = 'visible'
+            // console.log("finishing line", fastest)
+
+            const point = projection.invert([pointRef1.current.getAttribute('cx'), pointRef1.current.getAttribute('cy')])
+            const point2 = projection.invert([transformedX, transformedY])
+            const lightYears = d3.geoDistance(point, point2) * 87 // 87 is arbitrary
+            const fastest = (lightYears / 0.995).toFixed(2)
+            textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years`).style('visibility', 'visible')
+          }
+
+        }, 200)
+      }
+    })
+
 
     svg.on("touchmove", (e) => {
       if (!layers.has("crosshair")) return
       clearTimeout(touchStartTimeout)
+      // clearTimeout(holdTimer)
       crosshairX.style('visibility', 'hidden')
       crosshairY.style('visibility', 'hidden')
-      coordinatesText.style('visibility', 'hidden')
+      textRef.current.style('visibility', 'hidden')
     })
 
+    // left app
     svg.on("mouseout", () => {
       if (!layers.has("crosshair")) return
       crosshairX.style('visibility', 'hidden')
       crosshairY.style('visibility', 'hidden')
-      coordinatesText.style('visibility', 'hidden')
+      textRef.current.style('visibility', 'hidden')
     })
 
-    svg.on("mousedown", () => {
-      if (!layers.has("crosshair")) return
-      crosshairX.style('visibility', 'hidden');
-      crosshairY.style('visibility', 'hidden')
-      coordinatesText.style('visibility', 'hidden')
+    // triggered by mobile and desktop, but just ignore mobile. Use touchstart instead
+    svg.on("mousedown", e => {
+      if (!layers.has("measure") || mobile) return
+      const [mouseX, mouseY] = d3.pointer(e)
+      const transform = d3.zoomTransform(svgRef.current)
+      const transformedX = (mouseX - transform.x) / transform.k;
+      const transformedY = (mouseY - transform.y) / transform.k
+      const point = projection.invert([transformedX, transformedY])
+      const coord = projection(point)
+      holdTimer = setTimeout(() => {
+        textRef.current.style('visibility', 'visible')
+        pointRef1.current.setAttribute('cx', coord[0])
+        pointRef1.current.setAttribute('cy', coord[1])
+        pointRef1.current.style.visibility = 'visible'
+        d3.select(pointRef1.current).raise()
+        if (lineRef.current.x1.baseVal.value === 0) {
+          return
+        }
+        lineRef.current.setAttribute('x1', coord[0])
+        lineRef.current.setAttribute('y1', coord[1])
+        d3.select(lineRef.current).raise()
+      }, 200)
     })
 
     // Territory SVG Polygons
@@ -362,7 +435,10 @@ function Map({ width, height }) {
         positionTooltip(e)
       })
       .on("click", (e, d) => {
+        if (layers.has("measure")) return
+        // crosshair and mobile dont play nice
         if (layers.has("crosshair") && mobile) return
+
         setDrawerOpen()
         // if (mobile) return
         const zoom = 3
@@ -452,6 +528,8 @@ function Map({ width, height }) {
       .attr('stroke', 'black')
       .style('opacity', 1)
       .on("click", (e, d) => {
+        if (layers.has("measure")) return
+        // crosshair and mobile dont play nice
         if (layers.has("crosshair") && mobile) return
 
         // TODO: find way to keep drawer open if already open and clicking on another point
@@ -517,13 +595,22 @@ function Map({ width, height }) {
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
         setLabelOpactiy(event.transform.k)
+
+        // prevents measure dot from being moved on pan for both mobile and desktop
+        if (holdTimer) clearTimeout(holdTimer)
+
+        // hide crosshair while pan/zoom
+        if (layers.has("crosshair")) {
+          crosshairX.style('visibility', 'hidden');
+          crosshairY.style('visibility', 'hidden')
+          textRef.current.style('visibility', 'hidden')
+        }
       })
       .on("start", () => {
         document.querySelector(".map-tooltip").style.visibility = "hidden"
         svg.style("cursor", "grabbing")
       })
       .on("end", () => {
-
         svg.style("cursor", "grab")
       })
 
@@ -542,15 +629,7 @@ function Map({ width, height }) {
     <>
       <Tooltip {...tooltip} />
 
-      <Sheet onOpenChange={setDrawerOpen} open={drawerOpen} modal={false} style={{ color: 'white' }} >
-        <SheetContent side="bottom" style={{ maxHeight: '50vh', overflowY: 'auto' }} className="map-sheet">
-          <SheetHeader >
-            <SheetTitle className="text-center">{drawerContent?.coordinates ? `x: ${Math.floor(drawerContent.coordinates[0])}, y: ${Math.floor(drawerContent.coordinates[1])}` : 'unknown'}</SheetTitle>
-            <SheetDescription />
-          </SheetHeader >
-          <DrawContent {...drawerContent} />
-        </SheetContent >
-      </Sheet >
+      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} />
 
       <div style={{ position: 'absolute', top: '10vh', left: '10px', backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '8px' }}>
         <button onClick={() => setShowControls(!showControls)} className='p-1 m-1'>
@@ -576,11 +655,28 @@ function Map({ width, height }) {
             <input type="checkbox" id="crosshair-checkbox" onChange={() => updateLayerOpacity('crosshair')} />
             <label> Find Coordinates</label>
           </div>
+          <div>
+            <input type="checkbox" id="measure-checkbox" onChange={() => updateLayerOpacity('measure')} />
+            <label> Measure</label>
+          </div>
         </div >
       </div>
 
       <svg ref={svgRef} width={width} height={height}>
-        <g ref={gRef}></g>
+        <g ref={gRef}>
+          <circle
+            r={5}
+            ref={pointRef1}
+            fill="orange"
+            style={{ visibility: 'hidden', pointerEvents: "none" }}
+          />
+          <line
+            ref={lineRef}
+            stroke="orange"
+            strokeDasharray="5,5"
+            style={{ visibility: 'hidden', pointerEvents: "none" }}
+          />
+        </g>
       </svg>
     </>
   )

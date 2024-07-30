@@ -116,7 +116,7 @@ export default async function Location({ params, searchParams }) {
 
         <Accordion type="single" collapsible className="md:mx-8 mx-4">
           <AccordionItem value="item-1">
-            <AccordionTrigger>See map</AccordionTrigger>
+            <AccordionTrigger>See on map</AccordionTrigger>
             <AccordionContent className="map-container flex justify-around">
               <MiniMap panX={Number(location.coordinates.split(",")[0].trim())} panY={Number(location.coordinates.split(",")[1].trim())} />
             </AccordionContent>

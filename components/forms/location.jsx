@@ -230,7 +230,7 @@ export default function CreateLocation({ map }) {
                     <Editor theme="bubble" value={field.value} onChange={field.onChange} className="border border-gray-800" />
                   </FormControl>
                   <FormDescription>
-                    Description of the location. Selecting written text allows for rich editing.
+                    Description of the location. Selecting your written text allows for rich editing.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
