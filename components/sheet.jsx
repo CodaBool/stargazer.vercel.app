@@ -9,6 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { Badge } from '@/components/ui/badge.jsx'
 import Link from "next/link"
 
 export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, coordinates }) {
