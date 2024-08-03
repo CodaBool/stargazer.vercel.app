@@ -86,6 +86,8 @@ export async function POST(req) {
         method: "POST",
       })
 
+      console.log("email", email.ok, html, body)
+
       if (!email.ok) throw await email.text()
     }
 
