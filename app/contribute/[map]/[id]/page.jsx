@@ -20,7 +20,7 @@ import { getServerSession } from "next-auth"
 import DOMPurify from "isomorphic-dompurify"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import db from "@/lib/db"
-import { ArrowLeft, Star } from "lucide-react"
+import { ArrowLeft, Star, CircleX } from "lucide-react"
 import MiniMap from "@/components/minimap"
 import { adminIds } from "@/lib/utils"
 
@@ -93,6 +93,13 @@ export default async function Location({ params, searchParams }) {
     comment.content = DOMPurify.sanitize(comment.content)
   })
 
+  let panX = "wow such NaN"
+  let panY = "wow such NaN"
+  if (location.coordinates.includes(",")) {
+    panX = Number(location.coordinates.split(",")[0].trim())
+    panY = Number(location.coordinates.split(",")[1].trim())
+  }
+
   return (
     <div className="mx-auto my-4 md:container">
       <Link href={`/contribute/${map}`} className="w-[50px] block">
@@ -108,7 +115,7 @@ export default async function Location({ params, searchParams }) {
             {location.thirdParty && <Badge variant="destructive" className="">Unofficial</Badge>}
           </CardTitle>
           <div className="text-gray-400">{location.type}</div>
-          <span className="">Coordinates: <span className="text-gray-400">{Math.floor(Number(location.coordinates.split(",")[0]))} {Math.floor(Number(location.coordinates.split(",")[1]))}</span></span>
+          <span className="">Coordinates: <span className="text-gray-400">{Math.floor(Number(panX))} {Math.floor(panY)}</span></span>
           {location.faction && <span className="inline">Faction: <span className="text-gray-400 inline">{location.faction}</span></span>}
           <span className="">Source: <span className="text-gray-400">{location.source}</span></span>
         </CardHeader>
@@ -118,7 +125,12 @@ export default async function Location({ params, searchParams }) {
           <AccordionItem value="item-1">
             <AccordionTrigger>See on map</AccordionTrigger>
             <AccordionContent className="map-container flex justify-around">
-              <MiniMap panX={Number(location.coordinates.split(",")[0].trim())} panY={Number(location.coordinates.split(",")[1].trim())} />
+              {isNaN(panX)
+                ? <div>
+                  <CircleX className="mx-auto" /> Invalid Coordinates
+                </div>
+                : <MiniMap panX={panX} panY={panY} />
+              }
             </AccordionContent>
           </AccordionItem>
         </Accordion>

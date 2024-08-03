@@ -34,7 +34,7 @@ export default function CreateLocation({ user }) {
   const form = useForm()
 
   async function submit(body) {
-    if (!body.alias.trim()) {
+    if (!body.alias?.trim()) {
       form.setError("alias", {
         type: "manual",
         message: "Your alias must have content",
@@ -45,7 +45,7 @@ export default function CreateLocation({ user }) {
     const res = await fetch('/api/profile', {
       method: 'PUT',
       body: JSON.stringify({
-        alias: body.alias.trim(),
+        alias: body.alias?.trim(),
       })
     })
     const response = await res.json()

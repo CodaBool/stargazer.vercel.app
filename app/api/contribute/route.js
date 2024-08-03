@@ -86,8 +86,7 @@ export async function POST(req) {
         method: "POST",
       })
 
-      console.log("email", email.ok, html, body)
-
+      // TODO: the email worker did not give a helpful error. I had to see its logs
       if (!email.ok) throw await email.text()
     }
 
