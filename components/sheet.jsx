@@ -35,6 +35,7 @@ export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, c
                     <p className="text-center text-gray-400">{location.type}</p>
                     {location.faction && <Badge className="mx-auto">{location.faction}</Badge>}
                     {location.destroyed && <Badge className="mx-auto">destroyed</Badge>}
+                    {location.capital && <Badge variant="destructive" className="mx-auto">capital</Badge>}
                   </CardContent>
                 </Card >
               </Link>

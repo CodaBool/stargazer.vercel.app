@@ -177,6 +177,23 @@ export default function CreateLocation({ map }) {
             />
             <FormField
               control={form.control}
+              name="city"
+              defaultValue=""
+              render={({ field }) => (
+                <FormItem className="py-4">
+                  <FormLabel>Cities (optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Karraka" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    A list of cities at this location, if there are multiple use a comma to separate them.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               rules={{ required: "Pick a location type" }}
               name="source"
               defaultValue=""
@@ -198,7 +215,7 @@ export default function CreateLocation({ map }) {
               name="thirdParty"
               defaultValue={false}
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -211,6 +228,54 @@ export default function CreateLocation({ map }) {
                     </FormLabel>
                     <FormDescription>
                       Is this location from official Lancer source material or an unofficial third party source
+                    </FormDescription>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="destroyed"
+              defaultValue={false}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Destroyed
+                    </FormLabel>
+                    <FormDescription>
+                      Is this location destroyed
+                    </FormDescription>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="capital"
+              defaultValue={false}
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 py-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Capital
+                    </FormLabel>
+                    <FormDescription>
+                      Is this location a capital for its faction
                     </FormDescription>
                   </div>
                   <FormMessage />

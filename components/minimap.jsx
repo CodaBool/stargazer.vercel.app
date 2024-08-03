@@ -1,99 +1,48 @@
 'use client'
-import { useEffect, useState, memo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import * as topojson from 'topojson-client'
 import * as d3 from 'd3'
-import { geography, points } from "@/app/data.js"
+import topo from "@/app/data.js"
+import { getColor, setLabelOpactiy } from "@/app/[map]/page"
 import { LoaderCircle } from 'lucide-react'
+import useScreen from '@/components/useScreen'
 
-const world = topojson.feature(geography, geography.objects.collection)
-const lines = topojson.feature(geography, geography.objects.lines)
-const pointsGeo = topojson.feature(points, points.objects.collection)
 let touchStartTimeout = null
 const scale = 400
-let projection, svgGlobal, zoomGlobal
+let projection, svgGlobal
 const layers = new Set(["unofficial", "guide", "background", "crosshair"])
 const center = [-78, 26]
 
-function getColor({ name, type }, stroke) {
-  if (stroke) {
-    if (type === "cluster") return "rgba(39, 83, 245, 0.3)";
-    if (name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,1)";
-    if (name === "Harrison Armory") return "rgba(99, 0, 128, 1)";
-    if (name === "IPS-N") return "rgba(128, 0, 0, 1)";
-    if (name === "Union Coreworlds") return "rgba(245, 39, 39, 0.3)"
-    if (type === "territory") return "rgba(255, 255, 255, 0.2)";
-    return "black";
-  } else {
-    // fill
-    if (type === "cluster") return "rgba(39, 122, 245, 0.2)";
-    if (name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,.7)";
-    if (name === "Harrison Armory") return "rgba(99, 0, 128, .8)";
-    if (name === "IPS-N") return "rgba(128, 0, 0, .8)";
-    if (name === "Union Coreworlds") return "rgba(245, 81, 39, 0.15)"
-    if (type === "territory") return "rgba(255, 255, 255, 0.2)";
-    return "lightgray";
-  }
-}
-
-
 export default function WaitForScreen({ panX, panY }) {
-  const [size, setSize] = useState()
-
-  useEffect(() => {
-    if (document.querySelector(".map-container")) {
-      const width = document.querySelector(".map-container").clientWidth
-      if (width < 500) {
-        setSize(width)
-      } else {
-        setSize(width - 100)
-      }
-    }
-  }, [])
-
-  if (!size) return (
+  const screen = useScreen()
+  if (!screen) return (
     <div className="flex items-center justify-center mt-[40vh]">
       <LoaderCircle className="w-16 h-16 animate-spin" />
     </div>
   )
-
+  const urlParams = new URLSearchParams(window.location.search)
+  // TODO: allow for a third map variant based on community input
+  const creator = urlParams.get("variant") === "starwall" ? "starwall" : "janederscore"
+  const geojson = {
+    guides: topojson.feature(topo[`${creator}Guides`], topo[`${creator}Guides`].objects.collection),
+    geography: topojson.feature(topo[`${creator}Geography`], topo[`${creator}Geography`].objects.collection),
+    points: topojson.feature(topo[`${creator}Points`], topo[`${creator}Points`].objects.collection),
+  }
   return (
-    <Map width={size} height={size} panX={panX} panY={panY} />
+    <MiniMap
+      width={screen.width}
+      height={screen.height}
+      panX={panX}
+      panY={panY}
+      geojson={geojson}
+    />
   )
 }
 
-function Map({ width, height, panX, panY }) {
+function MiniMap({ width, height, panX, panY, geojson }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
   let zoomGlobal
-
-  function setLabelOpactiy(zoomLevel) {
-    const g = d3.select(gRef.current)
-    const showUnofficial = layers.has("unofficial")
-    g.selectAll('.group-label').style('opacity', d => {
-      if (d.properties.unofficial === "true" && !showUnofficial) return 0
-      return zoomLevel <= 1.3 ? 1 : 0
-    })
-    g.selectAll('.group-label').style('opacity', d => {
-      if (d.properties.unofficial === "true" && !showUnofficial) return 0
-      return zoomLevel <= 1.3 ? 1 : 0
-    })
-    g.selectAll('.point-label').style('opacity', d => {
-      if (d.properties.unofficial === "true" && !showUnofficial) return 0
-      if (zoomLevel >= 1.3 && zoomLevel < 2) {
-        return d.properties.type === 'gate' ? 1 : 0
-      }
-      return zoomLevel >= 2 ? 1 : 0
-    })
-    g.selectAll('.point-label').style('font-size', d => {
-      if (zoomLevel > 2) {
-        if (zoomLevel > 2.5) {
-          return d.properties.type === 'gate' ? '7px' : '5px'
-        }
-        return d.properties.type === 'gate' ? '6px' : '4px'
-      }
-      return '12px'
-    })
-  }
 
   useEffect(() => {
     const svg = d3.select(svgRef.current)
@@ -101,7 +50,6 @@ function Map({ width, height, panX, panY }) {
     svgGlobal = svg
     projection = d3.geoMercator().scale(scale).center(center).translate([width / 2, height / 2])
     const pathGenerator = d3.geoPath().projection(projection)
-
 
     svg.attr("style", "background: radial-gradient(#000A2E 0%, #000000 100%)")
     // stars
@@ -199,7 +147,7 @@ function Map({ width, height, panX, panY }) {
 
     // Territory SVG Polygons
     g.selectAll('.group')
-      .data(world.features)
+      .data(geojson.geography.features)
       .enter().append('path')
       .attr('class', d => d.properties.unofficial ? 'unofficial group' : 'group')
       .attr('d', pathGenerator)
@@ -221,7 +169,7 @@ function Map({ width, height, panX, panY }) {
       })
 
     g.selectAll('.lines-label')
-      .data(lines.features)
+      .data(geojson.guides.features)
       .enter().append('text')
       .attr('class', 'lines-label guide')
       .attr('x', d => {
@@ -246,7 +194,7 @@ function Map({ width, height, panX, panY }) {
       .style('pointer-events', 'none')
 
     g.selectAll('.lines')
-      .data(lines.features)
+      .data(geojson.guides.features)
       .enter().append('path')
       .attr('class', 'lines guide')
       .attr('d', pathGenerator)
@@ -257,7 +205,7 @@ function Map({ width, height, panX, panY }) {
 
     // Territory Labels
     g.selectAll('.group-label')
-      .data(world.features)
+      .data(geojson.geography.features)
       .enter().append('text')
       // .attr('class', 'country-label country-layer')
       .attr('class', d => d.properties.unofficial ? 'unofficial group-label' : 'group-label')
@@ -270,23 +218,44 @@ function Map({ width, height, panX, panY }) {
       .style('text-anchor', 'middle')
       .style('pointer-events', 'none')
 
+
+    // Draw the points
+    const gateFeature = geojson.points.features.filter(d => d.properties.type === 'gate')
+    const nonGateFeature = geojson.points.features.filter(d => d.properties.type !== 'gate')
+
     // Draw the points
     g.selectAll('.point')
-      .data(pointsGeo.features)
-      .enter()
-      .append(d => d.properties.type === 'gate' ? document.createElementNS(d3.namespaces.svg, 'rect') : document.createElementNS(d3.namespaces.svg, 'circle'))
-      // .attr('class', 'point point-layer')
+      .data(nonGateFeature)
+      .enter().append('circle')
       .attr('class', d => d.properties.unofficial ? 'unofficial point' : 'point')
-      .attr('r', d => d.properties.type !== 'gate' ? 5 : null)
-      .attr('cx', d => d.properties.type !== 'gate' ? projection(d.geometry.coordinates)[0] : null)
-      .attr('cy', d => d.properties.type !== 'gate' ? projection(d.geometry.coordinates)[1] : null)
-      .attr('x', d => d.properties.type === 'gate' ? projection(d.geometry.coordinates)[0] - 5 : null)
-      .attr('y', d => d.properties.type === 'gate' ? projection(d.geometry.coordinates)[1] - 5 : null)
-      .attr('width', d => d.properties.type === 'gate' ? 10 : null)
-      .attr('height', d => d.properties.type === 'gate' ? 10 : null)
-      .attr('fill', d => d.properties.type === 'gate' ? 'teal' : 'slategray')
+      .attr('r', () => 5)
+      .attr('r', d => d.properties.type === 'star' ? 2 : 5)
+      .attr('cx', d => projection(d.geometry.coordinates)[0])
+      .attr('cy', d => projection(d.geometry.coordinates)[1])
+      .attr('fill', d => d.properties.type === 'star' ? "lightgray" : "slategray")
       .attr('stroke', 'black')
       .style('opacity', 1)
+      .on("click", (e, d) => handlePointClick(e, d))
+      .on("mouseover", (e, d) => {
+        d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.5)')
+        d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .7)')
+      })
+      .on("mouseout", (e, d) => {
+        d3.select(e.currentTarget).attr('fill', getColor(d.properties, false))
+        d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
+      })
+    g.selectAll('.point-gate')
+      .data(gateFeature)
+      .enter().append('rect')
+      .attr('class', d => d.properties.unofficial ? 'unofficial point' : 'point')
+      .attr('x', d => projection(d.geometry.coordinates)[0] - 5)
+      .attr('y', d => projection(d.geometry.coordinates)[1] - 5)
+      .attr('width', d => 10)
+      .attr('height', d => 10)
+      .attr('fill', d => 'teal')
+      .attr('stroke', 'black')
+      .style('opacity', 1)
+      .on("click", (e, d) => handlePointClick(e, d))
       .on("mouseover", (e, d) => {
         d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.5)')
         d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .7)')
@@ -296,9 +265,10 @@ function Map({ width, height, panX, panY }) {
         d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
       })
 
+
     // Add text labels for points
     g.selectAll('.point-label')
-      .data(pointsGeo.features)
+      .data(geojson.points.features)
       .enter().append('text')
       .attr('class', d => d.properties.unofficial ? 'unofficial point-label' : 'official point-label')
       // .attr('class', 'point-label point-layer')
@@ -322,14 +292,10 @@ function Map({ width, height, panX, panY }) {
       .translateExtent([[-scale * 1.5, -scale * 1.5], [width + scale * 1.5, height + scale * 1.5]])
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
-        setLabelOpactiy(event.transform.k)
+        setLabelOpactiy(event.transform.k, gRef.current, layers)
       })
-      .on("start", () => {
-        svg.style("cursor", "grabbing")
-      })
-      .on("end", () => {
-        svg.style("cursor", "grab")
-      })
+      .on("start", () => svg.style("cursor", "grabbing"))
+      .on("end", () => svg.style("cursor", "grab"))
 
     zoomGlobal = zoom
     svg.call(zoom)

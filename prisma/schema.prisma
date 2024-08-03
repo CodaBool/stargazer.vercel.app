@@ -24,12 +24,16 @@ model Location {
   name        String    @db.VarChar(80)
   createdAt   DateTime  @default(now()) @db.Timestamp(6)
   description String    @db.VarChar(3000)
+  city        String    @db.VarChar(100)
   type        String    @db.VarChar(25)
   coordinates String    @db.VarChar(35)
   faction     String    @db.VarChar(50)
   source      String    @db.VarChar(100)
   userId      String
   published   Boolean   @default(false)
+  capital     Boolean   @default(false)
+  crowded     Boolean   @default(false)
+  destroyed   Boolean   @default(false)
   resolved    Boolean   @default(false)
   thirdParty  Boolean   @default(false)
   alias       String?   @db.VarChar(50)
@@ -39,13 +43,14 @@ model Location {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  alias     String?    @unique @db.VarChar(16)
-  comments  Comment[]
-  locations Location[]
+  id            String     @id @default(cuid())
+  email         String     @unique
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  emailVerified DateTime?
+  alias         String?    @unique @db.VarChar(16)
+  comments      Comment[]
+  locations     Location[]
 }
 
 model VerificationToken {

@@ -2,47 +2,25 @@
 import { useEffect, useState, useRef } from 'react'
 import * as topojson from 'topojson-client'
 import * as d3 from 'd3'
-import { geography, points } from "../data.js"
+import topo from "../data.js"
 import { isMobile } from '@/lib/utils.js'
 import { ChevronLeft, LoaderCircle, Menu } from 'lucide-react'
 import { Badge } from '@/components/ui/badge.jsx'
 import Sheet from '@/components/sheet'
+import useScreen from '@/components/useScreen'
 
-const world = topojson.feature(geography, geography.objects.collection)
-const lines = topojson.feature(geography, geography.objects.lines)
-const pointsGeo = topojson.feature(points, points.objects.collection)
 let touchStartTimeout = null
 const scale = 400
 let projection, svgGlobal, zoomGlobal, holdTimer
 const layers = new Set(["unofficial", "guide", "background"])
 const center = [-78, 26]
-const MENU_HEIGHT_PX = 40
+export const MENU_HEIGHT_PX = 40
 const TOOLTIP_WIDTH_PX = 150
 const TOOLTIP_HEIGHT_PX = 160
 const TOOLTIP_Y_OFFSET = 50
 const DRAWER_OFFSET_PX = 100
 
-function useScreen() {
-  const [screenSize, setScreenSize] = useState()
-
-  useEffect(() => {
-    setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    const handleResize = () => {
-      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  if (!screenSize) return null
-
-  return ({
-    height: screenSize.height - MENU_HEIGHT_PX,
-    width: screenSize.width,
-  })
-}
-
-const Tooltip = ({ name, type, faction, destroyed, thirdParty }) => {
+const Tooltip = ({ name, type, faction, destroyed, thirdParty, capital }) => {
   if (!name) return (<div className="map-tooltip"></div>)
   return (
     <div className="map-tooltip p-5 rounded-2xl absolute bg-black" style={{ border: '1px dashed gray', visibility: "hidden" }}>
@@ -52,17 +30,19 @@ const Tooltip = ({ name, type, faction, destroyed, thirdParty }) => {
         {thirdParty && <Badge variant="destructive" className="mx-auto my-1">unofficial</Badge>}
         {faction && <Badge className="mx-auto my-1">{faction}</Badge>}
         {destroyed && <Badge variant="secondary" className="mx-auto my-1">destroyed</Badge>}
+        {capital && <Badge variant="secondary" className="mx-auto my-1">capital</Badge>}
       </div>
     </div>
   );
 };
 
-function getColor({ name, type }, stroke) {
+export function getColor({ name, type, faction }, stroke) {
   if (stroke) {
     if (type === "cluster") return "rgba(39, 83, 245, 0.3)";
     if (name === "Karrakis Trade Baronies") return "rgba(133, 92, 0,1)";
     if (name === "Harrison Armory") return "rgba(99, 0, 128, 1)";
-    if (name === "IPS-N") return "rgba(128, 0, 0, 1)";
+    if (name === "IPS-N") return "rgba(128, 0, 0, 1)"
+    if (faction === "interest") return "rgba(84, 153, 199, .3)"
     if (name === "Union Coreworlds") return "rgba(245, 39, 39, 0.3)"
     if (type === "territory") return "rgba(255, 255, 255, 0.2)";
     return "black";
@@ -73,8 +53,11 @@ function getColor({ name, type }, stroke) {
     if (name === "Harrison Armory") return "rgba(99, 0, 128, .8)";
     if (name === "IPS-N") return "rgba(128, 0, 0, .8)";
     if (name === "Union Coreworlds") return "rgba(245, 81, 39, 0.15)"
+    if (faction === "interest") return "rgba(84, 153, 199, .3)"
     if (type === "territory") return "rgba(255, 255, 255, 0.2)";
-    return "lightgray";
+    if (type === "gate") return "teal";
+    if (type === "star") return "lightgray";
+    return "slategray";
   }
 }
 
@@ -101,24 +84,66 @@ function positionTooltip(e) {
 }
 
 export default function WaitForScreen() {
-  const screen = useScreen()
+  const screen = useScreen("use full window size")
   if (!screen) return (
     <div className="flex items-center justify-center mt-[40vh]">
       <LoaderCircle className="w-16 h-16 animate-spin" />
     </div>
   )
+  const urlParams = new URLSearchParams(window.location.search)
+  // TODO: allow for a third map variant based on community input
+  const creator = urlParams.get("variant") === "starwall" ? "starwall" : "janederscore"
+  const geojson = {
+    guides: topojson.feature(topo[`${creator}Guides`], topo[`${creator}Guides`].objects.collection),
+    geography: topojson.feature(topo[`${creator}Geography`], topo[`${creator}Geography`].objects.collection),
+    points: topojson.feature(topo[`${creator}Points`], topo[`${creator}Points`].objects.collection),
+  }
   return (
-    <Map width={screen.width} height={screen.height} />
+    <Map
+      width={screen.width}
+      height={screen.height}
+      crosshairEnabled={urlParams.get("c")}
+      geojson={geojson}
+    />
   )
 }
 
-export function panTo(location) {
-  const point = pointsGeo.features.find(g => (
+export function panTo(location, creator) {
+  const { coordinates } = topo[`${creator}Points`].objects.collection.geometries.find(g => (
     g.properties.name === location
-  )).geometry.coordinates
-  const [x, y] = projection(point)
+  ))
+  const [x, y] = projection(coordinates)
   const transform = d3.zoomIdentity.translate(window.innerWidth / 2 - x * 3, (window.innerHeight - MENU_HEIGHT_PX) / 2 - y * 3).scale(3)
   svgGlobal.transition().duration(750).call(zoomGlobal.transform, transform)
+}
+
+export function setLabelOpactiy(zoomLevel, groupRef, layerSet) {
+  const g = d3.select(groupRef)
+  const showUnofficial = layerSet.has("unofficial")
+  g.selectAll('.group-label').style('opacity', d => {
+    if (d.properties.unofficial === "true" && !showUnofficial) return 0
+    return zoomLevel <= 1.3 ? 1 : 0
+  })
+  g.selectAll('.group-label').style('opacity', d => {
+    if (d.properties.unofficial === "true" && !showUnofficial) return 0
+    return zoomLevel <= 1.3 ? 1 : 0
+  })
+  g.selectAll('.point-label').style('opacity', d => {
+    if (d.properties.unofficial === "true" && !showUnofficial) return 0
+    if (zoomLevel >= 1.3 && zoomLevel < 2) {
+      return d.properties.type === 'gate' ? 1 : 0
+    }
+    return zoomLevel >= 2 ? 1 : 0
+  })
+  g.selectAll('.point-label').style('font-size', d => {
+    if (zoomLevel > 2) {
+      if (zoomLevel > 2.5) {
+        return d.properties.type === 'gate' ? '7px' : '5px'
+      }
+      return d.properties.type === 'gate' ? '6px' : '4px'
+    }
+    return '12px'
+  })
 }
 
 function getResizeOffsets(width, height) {
@@ -128,10 +153,10 @@ function getResizeOffsets(width, height) {
   }
 }
 
-function Map({ width, height }) {
+function Map({ width, height, crosshairEnabled, geojson }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
-  const pointRef1 = useRef(null)
+  const pointRef = useRef(null)
   const lineRef = useRef(null)
   const textRef = useRef(null)
   const resizeTimeout = useRef(null)
@@ -140,6 +165,33 @@ function Map({ width, height }) {
   const [drawerOpen, setDrawerOpen] = useState()
   const [drawerContent, setDrawerContent] = useState()
   const [showControls, setShowControls] = useState()
+
+  function handlePointClick(e, d) {
+    if (layers.has("measure")) return
+    // crosshair and mobile dont play nice
+    if (layers.has("crosshair") && mobile) return
+
+    // TODO: find way to keep drawer open if already open and clicking on another point
+    // const drawerOpenReal = document.querySelector(".map-sheet")?.getAttribute("data-state") || false
+    // console.log("drawer open", drawerOpenReal)
+
+    // add nearby locations to drawer
+    const locations = geojson.points.features.filter(p => {
+      return Math.sqrt(
+        Math.pow(p.geometry.coordinates[0] - d.geometry.coordinates[0], 2) +
+        Math.pow(p.geometry.coordinates[1] - d.geometry.coordinates[1], 2)
+      ) <= 1
+    }).map(p => p.properties)
+    setDrawerContent({ locations, coordinates: d.geometry.coordinates })
+    setDrawerOpen(true)
+    // if (mobile) return
+    const zoom = 3
+    const [x, y] = projection(d.geometry.coordinates)
+    const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
+    console.log("moving to point", d.properties.name, Math.floor(width / 2 - x * zoom + resizeOffsetX), Math.floor(height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY))
+    const transform = d3.zoomIdentity.translate(width / 2 - x * zoom + resizeOffsetX, height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY).scale(zoom)
+    svgGlobal.transition().duration(750).call(zoomGlobal.transform, transform)
+  }
 
   function updateLayerOpacity(layer) {
     const svg = d3.select(svgRef.current)
@@ -152,7 +204,7 @@ function Map({ width, height }) {
       if (layer === "background") {
         svg.attr("style", "background: radial-gradient(#000A2E 0%, #000000 100%)")
       } else if (layer === "measure") {
-        pointRef1.current.style.visibility = 'visible'
+        pointRef.current.style.visibility = 'visible'
         layers.delete("crosshair")
         document.getElementById("crosshair-checkbox").checked = false;
       } else if (layer === "crosshair") {
@@ -163,43 +215,14 @@ function Map({ width, height }) {
     }
 
     if (!layers.has("measure")) {
-      pointRef1.current.style.visibility = 'hidden'
+      pointRef.current.style.visibility = 'hidden'
       lineRef.current.style.visibility = 'hidden'
       textRef.current.style('visibility', 'hidden')
     } else if (!layers.has("background")) {
       svg.attr("style", "background: black")
     }
     const zoomLevel = d3.zoomTransform(svgRef.current).k
-    setLabelOpactiy(zoomLevel)
-  }
-
-  function setLabelOpactiy(zoomLevel) {
-    const g = d3.select(gRef.current)
-    const showUnofficial = layers.has("unofficial")
-    g.selectAll('.group-label').style('opacity', d => {
-      if (d.properties.unofficial === "true" && !showUnofficial) return 0
-      return zoomLevel <= 1.3 ? 1 : 0
-    })
-    g.selectAll('.group-label').style('opacity', d => {
-      if (d.properties.unofficial === "true" && !showUnofficial) return 0
-      return zoomLevel <= 1.3 ? 1 : 0
-    })
-    g.selectAll('.point-label').style('opacity', d => {
-      if (d.properties.unofficial === "true" && !showUnofficial) return 0
-      if (zoomLevel >= 1.3 && zoomLevel < 2) {
-        return d.properties.type === 'gate' ? 1 : 0
-      }
-      return zoomLevel >= 2 ? 1 : 0
-    })
-    g.selectAll('.point-label').style('font-size', d => {
-      if (zoomLevel > 2) {
-        if (zoomLevel > 2.5) {
-          return d.properties.type === 'gate' ? '7px' : '5px'
-        }
-        return d.properties.type === 'gate' ? '6px' : '4px'
-      }
-      return '12px'
-    })
+    setLabelOpactiy(zoomLevel, gRef.current, layers)
   }
 
   useEffect(() => {
@@ -298,11 +321,11 @@ function Map({ width, height }) {
         const transform = d3.zoomTransform(svg.node())
         const transformedX = (mouseX - transform.x) / transform.k;
         const transformedY = (mouseY - transform.y) / transform.k
-        lineRef.current.setAttribute('x1', pointRef1.current.getAttribute('cx'));
-        lineRef.current.setAttribute('y1', pointRef1.current.getAttribute('cy'))
+        lineRef.current.setAttribute('x1', pointRef.current.getAttribute('cx'));
+        lineRef.current.setAttribute('y1', pointRef.current.getAttribute('cy'))
         lineRef.current.setAttribute('x2', transformedX);
         lineRef.current.setAttribute('y2', transformedY)
-        const point = projection.invert([pointRef1.current.getAttribute('cx'), pointRef1.current.getAttribute('cy')])
+        const point = projection.invert([pointRef.current.getAttribute('cx'), pointRef.current.getAttribute('cy')])
         const point2 = projection.invert([transformedX, transformedY])
         const lightYears = d3.geoDistance(point, point2) * 87 // 87 is arbitrary
         const fastest = (lightYears / 0.995).toFixed(2);
@@ -334,14 +357,14 @@ function Map({ width, height }) {
 
         holdTimer = setTimeout(() => {
           textRef.current.style('visibility', 'visible')
-          pointRef1.current.style.visibility = 'visible'
+          pointRef.current.style.visibility = 'visible'
           d3.select(lineRef.current).raise()
-          d3.select(pointRef1.current).raise()
+          d3.select(pointRef.current).raise()
 
           if (lineRef.current.x2.baseVal.value !== 0) {
             // reset
-            pointRef1.current.setAttribute('cx', coord[0])
-            pointRef1.current.setAttribute('cy', coord[1])
+            pointRef.current.setAttribute('cx', coord[0])
+            pointRef.current.setAttribute('cy', coord[1])
             lineRef.current.style.visibility = 'hidden'
             lineRef.current.setAttribute('x1', coord[0]);
             lineRef.current.setAttribute('y1', coord[1])
@@ -349,8 +372,8 @@ function Map({ width, height }) {
             lineRef.current.setAttribute('y2', 0)
           } else if (lineRef.current.x1.baseVal.value === 0) {
             // first point
-            pointRef1.current.setAttribute('cx', coord[0])
-            pointRef1.current.setAttribute('cy', coord[1])
+            pointRef.current.setAttribute('cx', coord[0])
+            pointRef.current.setAttribute('cy', coord[1])
             lineRef.current.setAttribute('x1', coord[0]);
             lineRef.current.setAttribute('y1', coord[1])
           } else {
@@ -358,19 +381,15 @@ function Map({ width, height }) {
             lineRef.current.setAttribute('x2', transformedX);
             lineRef.current.setAttribute('y2', transformedY)
             lineRef.current.style.visibility = 'visible'
-            // console.log("finishing line", fastest)
-
-            const point = projection.invert([pointRef1.current.getAttribute('cx'), pointRef1.current.getAttribute('cy')])
+            const point = projection.invert([pointRef.current.getAttribute('cx'), pointRef.current.getAttribute('cy')])
             const point2 = projection.invert([transformedX, transformedY])
             const lightYears = d3.geoDistance(point, point2) * 87 // 87 is arbitrary
             const fastest = (lightYears / 0.995).toFixed(2)
             textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years`).style('visibility', 'visible')
           }
-
         }, 200)
       }
     })
-
 
     svg.on("touchmove", (e) => {
       if (!layers.has("crosshair")) return
@@ -400,10 +419,10 @@ function Map({ width, height }) {
       const coord = projection(point)
       holdTimer = setTimeout(() => {
         textRef.current.style('visibility', 'visible')
-        pointRef1.current.setAttribute('cx', coord[0])
-        pointRef1.current.setAttribute('cy', coord[1])
-        pointRef1.current.style.visibility = 'visible'
-        d3.select(pointRef1.current).raise()
+        pointRef.current.setAttribute('cx', coord[0])
+        pointRef.current.setAttribute('cy', coord[1])
+        pointRef.current.style.visibility = 'visible'
+        d3.select(pointRef.current).raise()
         if (lineRef.current.x1.baseVal.value === 0) {
           return
         }
@@ -415,7 +434,7 @@ function Map({ width, height }) {
 
     // Territory SVG Polygons
     g.selectAll('.group')
-      .data(world.features)
+      .data(geojson.geography.features)
       .enter().append('path')
       .attr('class', d => d.properties.unofficial ? 'unofficial group' : 'group')
       .attr('d', pathGenerator)
@@ -443,9 +462,7 @@ function Map({ width, height }) {
         // if (mobile) return
         const zoom = 3
         const [x, y] = pathGenerator.centroid(d)
-
         const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
-
         console.log("moving to group", d.properties.name, Math.floor(width / 2 - x * zoom + resizeOffsetX), Math.floor(height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY))
         const transform = d3.zoomIdentity.translate(width / 2 - x * zoom + resizeOffsetX, height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY).scale(zoom)
         svg.transition().duration(750).call(zoomGlobal.transform, transform)
@@ -463,7 +480,7 @@ function Map({ width, height }) {
       .on("mousemove", e => positionTooltip(e))
 
     g.selectAll('.lines-label')
-      .data(lines.features)
+      .data(geojson.guides.features)
       .enter().append('text')
       .attr('class', 'lines-label guide')
       .attr('x', d => {
@@ -488,7 +505,7 @@ function Map({ width, height }) {
       .style('pointer-events', 'none')
 
     g.selectAll('.lines')
-      .data(lines.features)
+      .data(geojson.guides.features)
       .enter().append('path')
       .attr('class', 'lines guide')
       .attr('d', pathGenerator)
@@ -499,7 +516,7 @@ function Map({ width, height }) {
 
     // Territory Labels
     g.selectAll('.group-label')
-      .data(world.features)
+      .data(geojson.geography.features)
       .enter().append('text')
       .attr('class', d => d.properties.unofficial ? 'unofficial group-label' : 'group-label')
       .attr('x', d => pathGenerator.centroid(d)[0])
@@ -512,48 +529,23 @@ function Map({ width, height }) {
       .style('pointer-events', 'none')
 
     // Draw the points
-    g.selectAll('.point')
-      .data(pointsGeo.features)
-      .enter()
-      .append(d => d.properties.type === 'gate' ? document.createElementNS(d3.namespaces.svg, 'rect') : document.createElementNS(d3.namespaces.svg, 'circle'))
+    const gateFeature = geojson.points.features.filter(d => d.properties.type === 'gate')
+    const nonGateFeature = geojson.points.features.filter(d => d.properties.type !== 'gate')
+
+    g.selectAll('.point-non-gate')
+      .data(nonGateFeature)
+      .enter().append('circle')
       .attr('class', d => d.properties.unofficial ? 'unofficial point' : 'point')
-      .attr('r', d => d.properties.type !== 'gate' ? 5 : null)
-      .attr('cx', d => d.properties.type !== 'gate' ? projection(d.geometry.coordinates)[0] : null)
-      .attr('cy', d => d.properties.type !== 'gate' ? projection(d.geometry.coordinates)[1] : null)
-      .attr('x', d => d.properties.type === 'gate' ? projection(d.geometry.coordinates)[0] - 5 : null)
-      .attr('y', d => d.properties.type === 'gate' ? projection(d.geometry.coordinates)[1] - 5 : null)
-      .attr('width', d => d.properties.type === 'gate' ? 10 : null)
-      .attr('height', d => d.properties.type === 'gate' ? 10 : null)
-      .attr('fill', d => d.properties.type === 'gate' ? 'teal' : 'slategray')
+      .attr('r', () => 5)
+      .attr('r', d => d.properties.type === 'star' ? 2 : 5)
+      .attr('cx', d => projection(d.geometry.coordinates)[0])
+      .attr('cy', d => projection(d.geometry.coordinates)[1])
+      .attr('fill', d => d.properties.type === 'star' ? "lightgray" : "slategray")
       .attr('stroke', 'black')
       .style('opacity', 1)
-      .on("click", (e, d) => {
-        if (layers.has("measure")) return
-        // crosshair and mobile dont play nice
-        if (layers.has("crosshair") && mobile) return
-
-        // TODO: find way to keep drawer open if already open and clicking on another point
-        // const drawerOpenReal = document.querySelector(".map-sheet")?.getAttribute("data-state") || false
-        // console.log("drawer open", drawerOpenReal)
-
-        // add nearby locations to drawer
-        const locations = pointsGeo.features.filter(p => {
-          return Math.sqrt(
-            Math.pow(p.geometry.coordinates[0] - d.geometry.coordinates[0], 2) +
-            Math.pow(p.geometry.coordinates[1] - d.geometry.coordinates[1], 2)
-          ) <= 1
-        }).map(p => p.properties)
-        setDrawerContent({ locations, coordinates: d.geometry.coordinates })
-        setDrawerOpen(true)
-        // if (mobile) return
-        const zoom = 3
-        const [x, y] = projection(d.geometry.coordinates)
-        const { resizeOffsetX, resizeOffsetY } = getResizeOffsets(width, height)
-        console.log("moving to point", d.properties.name, Math.floor(width / 2 - x * zoom + resizeOffsetX), Math.floor(height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY))
-        const transform = d3.zoomIdentity.translate(width / 2 - x * zoom + resizeOffsetX, height / 2 - y * zoom - DRAWER_OFFSET_PX + resizeOffsetY).scale(zoom)
-        svg.transition().duration(750).call(zoomGlobal.transform, transform)
-      })
+      .on("click", (e, d) => handlePointClick(e, d))
       .on("mouseover", (e, d) => {
+        // duplicate for gate
         d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.5)')
         d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .7)')
         if (mobile) return
@@ -561,6 +553,36 @@ function Map({ width, height }) {
         positionTooltip(e)
       })
       .on("mouseout", (e, d) => {
+        // duplicate for gate
+        d3.select(e.currentTarget).attr('fill', getColor(d.properties, false))
+        d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
+        setTooltip()
+        document.querySelector(".map-tooltip").style.visibility = "hidden"
+      })
+      .on("mousemove", e => positionTooltip(e))
+
+    g.selectAll('.point-gate')
+      .data(gateFeature)
+      .enter().append('rect')
+      .attr('class', d => d.properties.unofficial ? 'unofficial point' : 'point')
+      .attr('x', d => projection(d.geometry.coordinates)[0] - 5)
+      .attr('y', d => projection(d.geometry.coordinates)[1] - 5)
+      .attr('width', d => 10)
+      .attr('height', d => 10)
+      .attr('fill', d => 'teal')
+      .attr('stroke', 'black')
+      .style('opacity', 1)
+      .on("click", (e, d) => handlePointClick(e, d))
+      .on("mouseover", (e, d) => {
+        // duplicate for non-gate
+        d3.select(e.currentTarget).attr('fill', 'rgba(61, 150, 98, 0.5)')
+        d3.select(e.currentTarget).attr('stroke', 'rgba(61, 150, 98, .7)')
+        if (mobile) return
+        setTooltip(d.properties)
+        positionTooltip(e)
+      })
+      .on("mouseout", (e, d) => {
+        // duplicate for non-gate
         d3.select(e.currentTarget).attr('fill', getColor(d.properties, false))
         d3.select(e.currentTarget).attr('stroke', getColor(d.properties, true))
         setTooltip()
@@ -570,7 +592,7 @@ function Map({ width, height }) {
 
     // Add text labels for points
     g.selectAll('.point-label')
-      .data(pointsGeo.features)
+      .data(geojson.points.features)
       .enter().append('text')
       .attr('class', d => d.properties.unofficial ? 'unofficial point-label' : 'official point-label')
       // .attr('class', 'point-label point-layer')
@@ -594,7 +616,7 @@ function Map({ width, height }) {
       .translateExtent([[-scale * 1.5, -scale * 1.5], [width + scale * 1.5, height + scale * 1.5]])
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
-        setLabelOpactiy(event.transform.k)
+        setLabelOpactiy(event.transform.k, gRef.current, layers)
 
         // prevents measure dot from being moved on pan for both mobile and desktop
         if (holdTimer) clearTimeout(holdTimer)
@@ -618,8 +640,7 @@ function Map({ width, height }) {
     svg.call(zoom)
 
     // allow for enabling crosshair from URL
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('c') && !layers.has("crosshair")) {
+    if (crosshairEnabled && !layers.has("crosshair")) {
       document.getElementById("crosshair-checkbox").checked = true;
       updateLayerOpacity('crosshair')
     }
@@ -666,7 +687,7 @@ function Map({ width, height }) {
         <g ref={gRef}>
           <circle
             r={5}
-            ref={pointRef1}
+            ref={pointRef}
             fill="orange"
             style={{ visibility: 'hidden', pointerEvents: "none" }}
           />

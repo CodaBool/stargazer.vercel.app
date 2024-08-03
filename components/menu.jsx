@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Heart, Github, Copyright, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut } from "lucide-react"
+import { Heart, Github, UserRound, Copyright, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut } from "lucide-react"
 import SearchDialog from './dialog'
 import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
@@ -37,11 +37,23 @@ export default function Menu({ path, map }) {
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><Map size={16} className="mr-1" /> Maps</MenubarSubTrigger >
               <MenubarSubContent>
-                <Link href="/lancer" >
-                  <MenubarItem className="cursor-pointer">
-                    <Hexagon size={16} className="inline mr-1" /> Lancer
-                  </MenubarItem >
-                </Link>
+
+                <MenubarSub>
+                  <MenubarSubTrigger className="cursor-pointer"><Hexagon size={16} className="inline mr-1" /> Lancer</MenubarSubTrigger>
+                  <MenubarSubContent>
+                    <a href="/lancer">
+                      <MenubarItem className="cursor-pointer">
+                        <UserRound size={16} className="inline mr-1" /> Janederscore
+                      </MenubarItem>
+                    </a>
+
+                    <a href="/lancer?variant=starwall">
+                      <MenubarItem className="cursor-pointer">
+                        <UserRound size={16} className="inline mr-1" /> Starwall
+                      </MenubarItem>
+                    </a>
+                  </MenubarSubContent>
+                </MenubarSub>
               </MenubarSubContent >
             </MenubarSub>
 
@@ -142,16 +154,14 @@ export default function Menu({ path, map }) {
             <MenubarTrigger className="cursor-pointer">Account</MenubarTrigger  >
             <MenubarContent>
               <MenubarSeparator />
-              <>
-                <Link href="/profile">
-                  <MenubarItem className="cursor-pointer pl-[.98em]">
-                    <User size={18} className="inline mr-1" /> Profile
-                  </MenubarItem >
-                </Link>
-                <MenubarItem onClick={() => signOut()} className="ps-4 cursor-pointer">
-                  <LogOut size={16} className="inline mr-1" /> Sign out
+              <Link href="/profile">
+                <MenubarItem className="cursor-pointer pl-[.98em]">
+                  <User size={18} className="inline mr-1" /> Profile
                 </MenubarItem >
-              </>
+              </Link>
+              <MenubarItem onClick={signOut} className="ps-4 cursor-pointer">
+                <LogOut size={16} className="inline mr-1" /> Sign out
+              </MenubarItem >
             </MenubarContent>
           </MenubarMenu>
         }
