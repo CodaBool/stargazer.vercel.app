@@ -19,13 +19,48 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Heart, Github, UserRound, Copyright, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut } from "lucide-react"
+import { Heart, Github, UserRound, Copyright, Sparkles, Telescope, SquareArrowOutUpRight, MoonStar, Sparkle, BookOpen, Bug, Pencil, Plus, MapPin, RectangleHorizontal, Map, ArrowRightFromLine, Hexagon, ListCollapse, User, LogOut, Ruler, CodeXml } from "lucide-react"
 import SearchDialog from './dialog'
 import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
+import topo from "@/app/data.js"
+import { useEffect } from "react"
+
+let newParams = ""
+
+function handleDownload(collection) {
+  const urlParams = new URLSearchParams(window.location.search)
+
+  // TODO: allow for a third map variant based on community input
+  const creator = urlParams.get("variant") === "starwall" ? "starwall" : "janederscore"
+  // collection can be one of Guides, Geography, Points
+  const data = topo[creator + collection]
+
+  // OH BOY I SURE DO LOVE THAT THIS IS THE SOLUTION IN JAVASCRIPT LAND!!!!! 🫠
+  // if it ends up being the case to have the source of truth data file in the /public
+  // then I really should instead use Nextjs <Link href="/*.topojson" download>
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${creator}_${collection.toLowerCase()}.topojson`
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export default function Menu({ path, map }) {
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
+
+  useEffect(() => {
+    // this approach could be improved but seems to work for now
+    const urlParams = new URLSearchParams(window.location.search)
+    // starwall or janederscore
+    const v = urlParams.get("variant") === "starwall" ? "s" : "j"
+    newParams = new URLSearchParams({ v }).toString()
+  }, [])
+
   if (map) {
     return (
       <Menubar>
@@ -37,7 +72,6 @@ export default function Menu({ path, map }) {
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><Map size={16} className="mr-1" /> Maps</MenubarSubTrigger >
               <MenubarSubContent>
-
                 <MenubarSub>
                   <MenubarSubTrigger className="cursor-pointer"><Hexagon size={16} className="inline mr-1" /> Lancer</MenubarSubTrigger>
                   <MenubarSubContent>
@@ -54,24 +88,26 @@ export default function Menu({ path, map }) {
                     </a>
                   </MenubarSubContent>
                 </MenubarSub>
-              </MenubarSubContent >
+              </MenubarSubContent>
             </MenubarSub>
 
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><ArrowRightFromLine size={16} className="mr-1" /> Export</MenubarSubTrigger >
               <MenubarSubContent>
-                <Link href="/points.topojson" target="_blank" download>
-                  <MenubarItem className="cursor-pointer">
-                    <MapPin size={16} className="inline mr-1" /> Points Topojson
-                  </MenubarItem >
-                </Link>
-                <Link href="/polygons.topojson" target="_blank" download>
-                  <MenubarItem className="cursor-pointer">
-                    <RectangleHorizontal size={16} className="inline mr-1" /> Polygon Topojson
-                  </MenubarItem >
-                </Link>
+                {/* See handleDownload's comment on why public folder is not used */}
+                {/* <Link href="/points.topojson" target="_blank" download> */}
+                <MenubarItem className="cursor-pointer" onClick={() => handleDownload('Points')}>
+                  <MapPin size={16} className="inline mr-1" /> Points Topojson
+                </MenubarItem >
+                {/* </Link> */}
+                <MenubarItem className="cursor-pointer" onClick={() => handleDownload('Geography')}>
+                  <RectangleHorizontal size={16} className="inline mr-1" /> Geography Topojson
+                </MenubarItem >
+                <MenubarItem className="cursor-pointer" onClick={() => handleDownload('Guides')}>
+                  <Ruler size={16} className="inline mr-1" /> Guides Topojson
+                </MenubarItem >
                 <MenubarItem className="cursor-pointer text-gray-500">
-                  Create Embed
+                  <CodeXml size={16} className="inline mr-1" /> Create Embed
                 </MenubarItem >
               </MenubarSubContent>
             </MenubarSub>
@@ -79,7 +115,7 @@ export default function Menu({ path, map }) {
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger >
               <MenubarSubContent>
-                <Link href={`/contribute/${map}`}>
+                <Link href={`/contribute/${map}?${newParams}`}>
                   <MenubarItem className="cursor-pointer">
                     <Pencil size={16} className="inline mr-1" /> Edit an existing Location
                   </MenubarItem>
@@ -118,12 +154,23 @@ export default function Menu({ path, map }) {
             <MenubarSub>
               <MenubarSubTrigger className="cursor-pointer"><Map size={16} className="mr-1" /> Maps</MenubarSubTrigger >
               <MenubarSubContent>
-                <Link href="/lancer" >
-                  <MenubarItem className="cursor-pointer">
-                    <Hexagon size={16} className="inline mr-1" /> Lancer
-                  </MenubarItem >
-                </Link>
-              </MenubarSubContent >
+                <MenubarSub>
+                  <MenubarSubTrigger className="cursor-pointer"><Hexagon size={16} className="inline mr-1" /> Lancer</MenubarSubTrigger>
+                  <MenubarSubContent>
+                    <a href="/lancer">
+                      <MenubarItem className="cursor-pointer">
+                        <UserRound size={16} className="inline mr-1" /> Janederscore
+                      </MenubarItem>
+                    </a>
+
+                    <a href="/lancer?variant=starwall">
+                      <MenubarItem className="cursor-pointer">
+                        <UserRound size={16} className="inline mr-1" /> Starwall
+                      </MenubarItem>
+                    </a>
+                  </MenubarSubContent>
+                </MenubarSub>
+              </MenubarSubContent>
             </MenubarSub>
 
             {(path === "/profile" || path === "/contribute") &&
@@ -184,7 +231,7 @@ function AboutMenu() {
         </a>
 
         <a href="https://github.com/codabool/community-vtt-maps/wiki" target="_blank">
-          <MenubarItem inset className="cursor-pointer"><BookOpen size={16} className="inline mr-1" /> Wiki</MenubarItem>
+          <MenubarItem inset className="cursor-pointer  text-gray-500"><BookOpen size={16} className="inline mr-1" /> Wiki</MenubarItem>
         </a>
 
         <Dialog>
@@ -264,8 +311,8 @@ function Credits() {
           {/* <span><Sparkle className="inline pr-2" /> contribute to be added</span><br /> */}
         </span>
       </span>
-
-      <span className="text-center block text-[dimgray] mt-8">Stargazer is not an official Lancer product<br />Lancer is copyright Massif Press</span>
+      <span className="text-center block text-[dimgray] mt-4">Created with <Heart size={14} className="inline" /> by <Link href="/easteregg" style={{ color: "#60677c" }}>CodaBool</Link></span>
+      <span className="text-center block text-[dimgray] mt-4">Stargazer is not an official Lancer product<br />Lancer is copyright Massif Press</span>
     </>
   )
 }

@@ -13,16 +13,13 @@ let projection, svgGlobal
 const layers = new Set(["unofficial", "guide", "background", "crosshair"])
 const center = [-78, 26]
 
-export default function WaitForScreen({ panX, panY }) {
+export default function WaitForScreen({ panX, panY, creator }) {
   const screen = useScreen()
   if (!screen) return (
     <div className="flex items-center justify-center mt-[40vh]">
       <LoaderCircle className="w-16 h-16 animate-spin" />
     </div>
   )
-  const urlParams = new URLSearchParams(window.location.search)
-  // TODO: allow for a third map variant based on community input
-  const creator = urlParams.get("variant") === "starwall" ? "starwall" : "janederscore"
   const geojson = {
     guides: topojson.feature(topo[`${creator}Guides`], topo[`${creator}Guides`].objects.collection),
     geography: topojson.feature(topo[`${creator}Geography`], topo[`${creator}Geography`].objects.collection),

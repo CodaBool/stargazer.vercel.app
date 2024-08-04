@@ -103,9 +103,9 @@ export default function CreateLocation({ map }) {
                   <FormControl>
                     <Input placeholder="Cradle" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    The location name, if there are alternative names include them in the description
-                  </FormDescription>
+                  {/* <FormDescription>
+                    The location name
+                  </FormDescription> */}
                   <FormMessage />
                 </FormItem >
               )}
@@ -127,6 +127,8 @@ export default function CreateLocation({ map }) {
                         <SelectItem value="territory">Territory (polygon)</SelectItem>
                         <SelectItem value="cluster">Star Cluster (polygon)</SelectItem>
                         <SelectItem value="terrestrial">Terrestrial</SelectItem>
+                        <SelectItem value="star">Star</SelectItem>
+                        <SelectItem value="station">Station</SelectItem>
                         <SelectItem value="gate">Gate</SelectItem>
                         <SelectItem value="jovian">Jovian</SelectItem>
                         <SelectItem value="moon">Moon</SelectItem>
@@ -152,7 +154,7 @@ export default function CreateLocation({ map }) {
                     <Input placeholder="-24, 601" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The x and y coordinates for this location. Use the <a href="/lancer?c=1" className="text-blue-50" target="_blank">Find Coordinates</a> control to determine this. If you're unsure about a coordinate, mention that in your description.
+                    The x and y coordinates for this location. Use the <a href="/lancer?c=1" className="text-blue-50" target="_blank">Find Coordinates</a> control to determine this. If you're unsure about a coordinate, mention that in your description. Use a comma to separate the x and y values.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -169,7 +171,7 @@ export default function CreateLocation({ map }) {
                     <Input placeholder="HA" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Who has control over the location.
+                    Who has control over the location. The current convention is to use abbreviations (i.e. KTB, IPS-N). If multiple factions have influence, you can use "interest"
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -187,6 +189,23 @@ export default function CreateLocation({ map }) {
                   </FormControl>
                   <FormDescription>
                     A list of cities at this location, if there are multiple use a comma to separate them.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="alias"
+              defaultValue=""
+              render={({ field }) => (
+                <FormItem className="py-4">
+                  <FormLabel>Alias (optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Karraka" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    A list of aliases for this location, if there are multiple use a comma to separate them.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

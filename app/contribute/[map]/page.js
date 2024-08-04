@@ -22,8 +22,11 @@ import { Badge } from "@/components/ui/badge"
 
 export default async function Contribute({ params, searchParams }) {
   const session = await getServerSession(authOptions)
-  const { p: openLocationForm } = searchParams
+  const { p: openLocationForm, v: variant } = searchParams
   const { map } = params
+
+  const creator = variant === "s" ? "starwall" : "janederscore"
+  const mapFilter = map + "-" + creator
 
   // TODO: test if this will be a cached request for unauth requests
   const user = session ? await db.user.findUnique({ where: { email: session.user.email } }) : null
@@ -33,22 +36,22 @@ export default async function Contribute({ params, searchParams }) {
         { published: true },
         { userId: user ? user.id : "" }
       ],
-      map,
+      map: mapFilter,
     },
   })
 
   return (
-    <div className="md:container mx-auto my-10">
+    <div className="md:container mx-auto my-10 mr-1">
       {openLocationForm
         ? <CreateLocation map={map} />
         : <Link href={`/contribute/${map}?p=1`} ><Button variant="outline" className="w-full my-4">Create a new Location</Button ></Link>
       }
       <Dialog>
         <DialogTrigger className="rounded-md border border-slate-800 bg-slate-950 hover:bg-slate-800 hover:text-slate-50 h-10 w-full my-4">What is this?</DialogTrigger>
-        <DialogContent className="px-6 min-[500x]:px-0">
+        <DialogContent className="sm:px-6 px-0  pr-2">
           <DialogHeader>
             <DialogTitle>This is not a wiki</DialogTitle>
-            <DialogDescription className="text-lg pt-2">
+            <DialogDescription>
               &emsp;Here you can find a list of the current locations for the map. As well as any community submitted locations.
               <br /><br />
               &emsp;The purpose of this is to keep the coordinates and simple location data as accurate as possible.
@@ -65,8 +68,8 @@ export default async function Contribute({ params, searchParams }) {
               <br /><br />
               the focus of this application will always be the map
 
-              <svg width="400" height="150" xmlns="http://www.w3.org/2000/svg">
-                <g transform="translate(70, -40) scale(0.4)">
+              <svg xmlns="http://www.w3.org/2000/svg" className="sm:pl-10">
+                <g transform="translate(0, -40) scale(0.4)">
                   <path id="svg_1" d="m100.5,126.80573l11.84103,0l3.65897,-11.84098l3.65897,11.84098l11.84103,0l-9.57958,7.31804l3.65916,11.84098l-9.57958,-7.31824l-9.57958,7.31824l3.65916,-11.84098l-9.57958,-7.31804z" stroke="black" fill="#fff" />
                   <path id="svg_2" d="m222.5,265.80573l11.84103,0l3.65897,-11.84098l3.65897,11.84098l11.84103,0l-9.57957,7.31804l3.65915,11.84098l-9.57958,-7.31824l-9.57958,7.31824l3.65916,-11.84098l-9.57958,-7.31804z" stroke="black" fill="#fff" />
                   <path id="svg_3" d="m361.5,245.80573l11.84103,0l3.65897,-11.84098l3.65897,11.84098l11.84103,0l-9.57957,7.31804l3.65915,11.84098l-9.57958,-7.31824l-9.57958,7.31824l3.65916,-11.84098l-9.57958,-7.31804z" stroke="black" fill="#fff" />

@@ -13,9 +13,9 @@ This is because the project will release a free TopoJSON.
 This is a common standard for map making in real world applications.
 However, it can also be useful for fictional maps.
 
-I will however, be creating my own stylized version of each map. This won't be the focus of the project but should be generally usable.
+I will however, be creating my own stylized version of each map. This won't be the focus of the project but should be generally usable. It is possible to create an iframe embed of the map. I will provide an example of this in the Wiki section.
 
-If you want create your own map. Or just make general use of the TopoJSON I'd recommend picking up [d3-geo](https://observablehq.com/collection/@d3/d3-geo). Then start by looking at my code as an example.
+If you want to create your own map. Or just make general use of the TopoJSON I'd recommend picking up [d3-geo](https://observablehq.com/collection/@d3/d3-geo). Then start by looking at my code as an example.
 
 ## 📅 Upcoming
 

@@ -28,12 +28,11 @@ export default async function Location({ params, searchParams }) {
   const session = await getServerSession(authOptions)
   const { id, map } = params
   const { c: commentFormOpen } = searchParams
-
   const user = session ? await db.user.findUnique({ where: { email: session.user.email } }) : null
   const location = await db.location.findUnique({
     where: {
       id: Number(id),
-      map,
+      // map: mapFilter,
     },
     include: {
       comments: {
@@ -66,6 +65,8 @@ export default async function Location({ params, searchParams }) {
   if (!viewable && location.userId === user.id) {
     viewable = true
   }
+
+  const creator = location.map.split('-')[1]
   // run this on every anchor tag
   DOMPurify.addHook('afterSanitizeElements', node => {
     if (node.tagName === 'A') {
@@ -100,9 +101,11 @@ export default async function Location({ params, searchParams }) {
     panY = Number(location.coordinates.split(",")[1].trim())
   }
 
+  console.log("use creator char", creator.charAt(0))
+
   return (
-    <div className="mx-auto my-4 md:container">
-      <Link href={`/contribute/${map}`} className="w-[50px] block">
+    <div className="mx-auto my-4 md:container mr-1">
+      <Link href={`/contribute/${map}?v=${creator.charAt(0)}`} className="w-[50px] block">
         <div className="w-[50px] h-[50px] rounded-2xl border border-[#1E293B] mb-2 ml-6 md:ml-0" style={{ background: "#070a0d" }}>
           <ArrowLeft size={42} className="relative left-[3px] top-[3px]" />
         </div>
@@ -111,12 +114,16 @@ export default async function Location({ params, searchParams }) {
         <CardHeader>
           <CardTitle>
             {location.name}
-            {!location.published && <Badge variant="secondary" className="mx-4">Pending Review</Badge>}
-            {location.thirdParty && <Badge variant="destructive" className="">Unofficial</Badge>}
+            {!location.published && <Badge variant="secondary" className="mx-1">Pending Review</Badge>}
+            {location.thirdParty && <Badge variant="destructive" className="mx-1">Unofficial</Badge>}
+            {location.destroyed && <Badge variant="secondary" className="mx-1">Destroyed</Badge>}
+            {location.capital && <Badge variant="secondary" className="mx-1">Capital</Badge>}
           </CardTitle>
           <div className="text-gray-400">{location.type}</div>
           <span className="">Coordinates: <span className="text-gray-400">{Math.floor(Number(panX))} {Math.floor(panY)}</span></span>
           {location.faction && <span className="inline">Faction: <span className="text-gray-400 inline">{location.faction}</span></span>}
+          {location.city && <span className="inline">City: <span className="text-gray-400 inline">{location.city}</span></span>}
+          {location.alias && <span className="inline">Alias: <span className="text-gray-400 inline">{location.alias}</span></span>}
           <span className="">Source: <span className="text-gray-400">{location.source}</span></span>
         </CardHeader>
         <CardContent className="location-description border border-gray-800 rounded-2xl pt-4 md:mx-6 bg-[#02050D]" dangerouslySetInnerHTML={{ __html: location.description }} />
@@ -129,7 +136,7 @@ export default async function Location({ params, searchParams }) {
                 ? <div>
                   <CircleX className="mx-auto" /> Invalid Coordinates
                 </div>
-                : <MiniMap panX={panX} panY={panY} />
+                : <MiniMap panX={panX} panY={panY} creator={creator} />
               }
             </AccordionContent>
           </AccordionItem>
