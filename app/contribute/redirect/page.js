@@ -2,12 +2,19 @@ import { redirect } from "next/navigation"
 import db from "@/lib/db"
 
 export default async function RedirectPage({ searchParams }) {
+  // it is difficult to map the topojson to PG data
+  // I've added a description to all name duplicate locations
+  // which should be enough to find the correct location
+  // but will require keeping descriptions unique
+  // on locations with duplicate names
+  const { name, description } = searchParams
   const location = await db.location.findFirst({
     where: {
-      id: searchParams.id,
+      name,
+      description,
     },
   })
-  const [baseMap, variant] = map.split("-")
+  const [baseMap, variant] = location.map.split("-")
   const creator = variant === "starwall" ? "s" : "j"
 
   if (location) {

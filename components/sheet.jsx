@@ -22,8 +22,13 @@ export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, c
         </SheetHeader >
         <div className="flex flex-wrap justify-center">
           {locations?.map(location => {
+            // console.log("l, check for description", location)
+            const params = new URLSearchParams({
+              description: location.description,
+              name: location.name
+            }).toString()
             return (
-              <Link href={`/contribute/redirect?id=${location.id}`} key={location.name}>
+              <Link href={`/contribute/redirect?${params}`} key={location.name}>
                 <Card className="min-h-[80px] m-2 min-w-[150px]">
                   <CardContent className="p-2 text-center">
                     {location.thirdParty && <Badge variant="destructive" className="mx-auto">unofficial</Badge>}
