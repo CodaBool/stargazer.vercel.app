@@ -24,7 +24,7 @@ export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, c
           {locations?.map(location => {
             // console.log("l, check for description", location)
             const params = new URLSearchParams({
-              description: location.description,
+              description: location.description || "",
               name: location.name,
               map,
             }).toString()

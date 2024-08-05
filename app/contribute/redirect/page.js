@@ -11,7 +11,7 @@ export default async function RedirectPage({ searchParams }) {
   const location = await db.location.findFirst({
     where: {
       name,
-      description,
+      description: description || "",
       map,
     },
   })
