@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge.jsx'
 import Link from "next/link"
 
-export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, coordinates }) {
+export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, coordinates, map }) {
   return (
     <Sheet onOpenChange={setDrawerOpen} open={drawerOpen} modal={false} style={{ color: 'white' }} >
       <SheetContent side="bottom" style={{ maxHeight: '50vh', overflowY: 'auto' }} className="map-sheet">
@@ -25,7 +25,8 @@ export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, c
             // console.log("l, check for description", location)
             const params = new URLSearchParams({
               description: location.description,
-              name: location.name
+              name: location.name,
+              map,
             }).toString()
             return (
               <Link href={`/contribute/redirect?${params}`} key={location.name}>

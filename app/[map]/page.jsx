@@ -82,7 +82,7 @@ function positionTooltip(e) {
   tt.style.visibility = "visible"
 }
 
-export default function WaitForScreen() {
+export default function WaitForScreen({ params }) {
   const screen = useScreen("use full window size")
   if (!screen) return (
     <div className="flex items-center justify-center mt-[40vh]">
@@ -104,6 +104,7 @@ export default function WaitForScreen() {
       height={screen.height}
       crosshairEnabled={urlParams.get("c")}
       geojson={geojson}
+      mapName={`${params.map}-${creator}`}
     />
   )
 }
@@ -153,7 +154,7 @@ function getResizeOffsets(width, height) {
   }
 }
 
-function Map({ width, height, crosshairEnabled, geojson }) {
+function Map({ width, height, crosshairEnabled, geojson, mapName }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
   const pointRef = useRef(null)
@@ -650,7 +651,7 @@ function Map({ width, height, crosshairEnabled, geojson }) {
     <>
       <Tooltip {...tooltip} />
 
-      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} />
+      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} map={mapName} />
 
       <div style={{ position: 'absolute', top: '10vh', left: '10px', backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '8px' }}>
         <button onClick={() => setShowControls(!showControls)} className='p-1 m-1'>

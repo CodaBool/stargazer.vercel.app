@@ -101,8 +101,6 @@ export default async function Location({ params, searchParams }) {
     panY = Number(location.coordinates.split(",")[1].trim())
   }
 
-  console.log("use creator char", creator.charAt(0))
-
   return (
     <div className="mx-auto my-4 md:container mr-1">
       <Link href={`/contribute/${map}?v=${creator.charAt(0)}`} className="w-[50px] block">

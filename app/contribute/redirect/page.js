@@ -7,11 +7,12 @@ export default async function RedirectPage({ searchParams }) {
   // which should be enough to find the correct location
   // but will require keeping descriptions unique
   // on locations with duplicate names
-  const { name, description } = searchParams
+  const { name, description, map } = searchParams
   const location = await db.location.findFirst({
     where: {
       name,
       description,
+      map,
     },
   })
   const [baseMap, variant] = location.map.split("-")
