@@ -16,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,8 +28,6 @@ import Avatar from 'boring-avatars'
 export default function CreateLocation({ user }) {
   const [submitting, setSubmitting] = useState()
   const router = useRouter()
-  // TODO: pick on toast method
-  const { toast: toasty } = useToast()
   const form = useForm()
 
   async function submit(body) {

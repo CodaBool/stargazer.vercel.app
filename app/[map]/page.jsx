@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
-import * as topojson from 'topojson-client'
+import { feature } from 'topojson-client'
 import * as d3 from 'd3'
 import topo from "../data.js"
 import { isMobile } from '@/lib/utils.js'
@@ -9,16 +9,15 @@ import { Badge } from '@/components/ui/badge.jsx'
 import Sheet from '@/components/sheet'
 import useScreen from '@/components/useScreen'
 
-let touchStartTimeout = null
-const scale = 400
-let projection, svgGlobal, zoomGlobal, holdTimer
+let projection, svgGlobal, zoomGlobal, holdTimer, touchStartTimeout
 const layers = new Set(["unofficial", "guide", "background"])
-const center = [-78, 26]
+const CENTER = [-78, 26]
 export const MENU_HEIGHT_PX = 40
 const TOOLTIP_WIDTH_PX = 150
 const TOOLTIP_HEIGHT_PX = 160
 const TOOLTIP_Y_OFFSET = 50
 const DRAWER_OFFSET_PX = 100
+const SCALE = 400
 
 const Tooltip = ({ name, type, faction, destroyed, thirdParty, capital }) => {
   if (!name) return (<div className="map-tooltip"></div>)
@@ -33,8 +32,8 @@ const Tooltip = ({ name, type, faction, destroyed, thirdParty, capital }) => {
         {capital && <Badge variant="secondary" className="mx-auto my-1">capital</Badge>}
       </div>
     </div>
-  );
-};
+  )
+}
 
 export function getColor({ name, type, faction }, stroke) {
   if (stroke) {
@@ -92,11 +91,12 @@ export default function WaitForScreen() {
   )
   const urlParams = new URLSearchParams(window.location.search)
   // TODO: allow for a third map variant based on community input
+  // TODO: a good refactor may be to use /[variant] path and stop messing with URL query
   const creator = urlParams.get("variant") === "starwall" ? "starwall" : "janederscore"
   const geojson = {
-    guides: topojson.feature(topo[`${creator}Guides`], topo[`${creator}Guides`].objects.collection),
-    geography: topojson.feature(topo[`${creator}Geography`], topo[`${creator}Geography`].objects.collection),
-    points: topojson.feature(topo[`${creator}Points`], topo[`${creator}Points`].objects.collection),
+    guides: feature(topo[`${creator}Guides`], topo[`${creator}Guides`].objects.collection),
+    geography: feature(topo[`${creator}Geography`], topo[`${creator}Geography`].objects.collection),
+    points: feature(topo[`${creator}Points`], topo[`${creator}Points`].objects.collection),
   }
   return (
     <Map
@@ -104,6 +104,7 @@ export default function WaitForScreen() {
       height={screen.height}
       crosshairEnabled={urlParams.get("c")}
       geojson={geojson}
+      creator={creator}
     />
   )
 }
@@ -153,7 +154,7 @@ function getResizeOffsets(width, height) {
   }
 }
 
-function Map({ width, height, crosshairEnabled, geojson }) {
+function Map({ width, height, crosshairEnabled, geojson, creator }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
   const pointRef = useRef(null)
@@ -250,7 +251,7 @@ function Map({ width, height, crosshairEnabled, geojson }) {
     const svg = d3.select(svgRef.current)
     const g = d3.select(gRef.current)
     svgGlobal = svg
-    projection = d3.geoMercator().scale(scale).center(center).translate([width / 2, height / 2])
+    projection = d3.geoMercator().scale(SCALE).center(CENTER).translate([width / 2, height / 2])
     const pathGenerator = d3.geoPath().projection(projection)
 
     // styling
@@ -329,7 +330,7 @@ function Map({ width, height, crosshairEnabled, geojson }) {
         const point2 = projection.invert([transformedX, transformedY])
         const lightYears = d3.geoDistance(point, point2) * 87 // 87 is arbitrary
         const fastest = (lightYears / 0.995).toFixed(2);
-        textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years`).style('visibility', 'visible')
+        textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years (.995u)`).style('visibility', 'visible')
       }
     })
 
@@ -385,7 +386,7 @@ function Map({ width, height, crosshairEnabled, geojson }) {
             const point2 = projection.invert([transformedX, transformedY])
             const lightYears = d3.geoDistance(point, point2) * 87 // 87 is arbitrary
             const fastest = (lightYears / 0.995).toFixed(2)
-            textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years`).style('visibility', 'visible')
+            textRef.current.text(`${lightYears.toFixed(2)}ly | ${fastest} years (.995u)`).style('visibility', 'visible')
           }
         }, 200)
       }
@@ -613,7 +614,7 @@ function Map({ width, height, crosshairEnabled, geojson }) {
     // All zoom and pan events
     const zoom = d3.zoom()
       .scaleExtent([1, 8])
-      .translateExtent([[-scale * 1.5, -scale * 1.5], [width + scale * 1.5, height + scale * 1.5]])
+      .translateExtent([[-SCALE * 1.5, -SCALE * 1.5], [width + SCALE * 1.5, height + SCALE * 1.5]])
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
         setLabelOpactiy(event.transform.k, gRef.current, layers)
@@ -650,7 +651,7 @@ function Map({ width, height, crosshairEnabled, geojson }) {
     <>
       <Tooltip {...tooltip} />
 
-      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} />
+      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} creator={creator} />
 
       <div style={{ position: 'absolute', top: '10vh', left: '10px', backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '8px' }}>
         <button onClick={() => setShowControls(!showControls)} className='p-1 m-1'>

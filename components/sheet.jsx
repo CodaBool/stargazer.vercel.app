@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge.jsx'
 import Link from "next/link"
 
-export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, coordinates }) {
+export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, coordinates, creator }) {
   return (
     <Sheet onOpenChange={setDrawerOpen} open={drawerOpen} modal={false} style={{ color: 'white' }} >
       <SheetContent side="bottom" style={{ maxHeight: '50vh', overflowY: 'auto' }} className="map-sheet">
@@ -22,12 +22,12 @@ export default function SheetComponent({ setDrawerOpen, drawerOpen, locations, c
         </SheetHeader >
         <div className="flex flex-wrap justify-center">
           {locations?.map(location => {
-            const name = new URLSearchParams({
+            const params = new URLSearchParams({
               name: location.name,
-              map: "lancer",
+              map: `lancer-${creator}`,
             }).toString()
             return (
-              <Link href={`/contribute/redirect?${name}`} key={location.name}>
+              <Link href={`/contribute/redirect?${params}`} key={location.name}>
                 <Card className="min-h-[80px] m-2 min-w-[150px]">
                   <CardContent className="p-2 text-center">
                     {location.thirdParty && <Badge variant="destructive" className="mx-auto">unofficial</Badge>}

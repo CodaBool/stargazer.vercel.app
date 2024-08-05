@@ -9,10 +9,13 @@ export default async function RedirectPage({ params, searchParams }) {
       map,
     },
   })
+  const [baseMap, variant] = map.split("-")
+  const creator = variant === "starwall" ? "s" : "j"
+
   if (location) {
-    redirect(`/contribute/${map}/${location.id}`)
+    redirect(`/contribute/${baseMap}/${location.id}`)
   } else {
-    redirect(`/contribute/${map}`)
+    redirect(`/contribute/${baseMap}?v=${creator}`)
   }
   return (
     <div className="flex items-center justify-center mt-[40vh]">

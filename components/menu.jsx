@@ -173,7 +173,7 @@ export default function Menu({ path, map }) {
               </MenubarSubContent>
             </MenubarSub>
 
-            {(path === "/profile" || path === "/contribute") &&
+            {/* {(path === "/profile" || path === "/contribute") &&
               <MenubarSub>
                 <MenubarSubTrigger className="cursor-pointer"><Heart size={16} className="mr-1" />Contribute</MenubarSubTrigger >
                 <MenubarSubContent>
@@ -184,7 +184,7 @@ export default function Menu({ path, map }) {
                   </Link>
                 </MenubarSubContent >
               </MenubarSub>
-            }
+            } */}
 
             <a href="https://github.com/codabool/community-vtt-maps/issues" target="_blank">
               <MenubarItem inset className="cursor-pointer  pl-2"><Bug size={16} className="inline mr-1" /> Issues</MenubarItem>

@@ -1,6 +1,8 @@
 // take the topojson write entire
 import topo from "@/app/data"
 import { Client } from 'pg'
+import * as d3 from 'd3-geo'
+import { feature } from 'topojson-client'
 
 // get this from the user table
 const ADMIN_ID = "clzdlawq2000047bzhlscljeh"
@@ -17,10 +19,19 @@ const insertData = async () => {
 
     for (const obj of value.objects.collection.geometries) {
       const { properties, coordinates } = obj
-
       let coord = "complex"
+
       if (coordinates) {
+        // Point location
         coord = coordinates.join(",")
+      } else {
+        // Compute centroid for Polygon
+        const geojson = feature(value, value.objects.collection)
+        const feat = geojson.features.find(poly =>
+          poly.properties.name === properties.name
+        )
+        const centroid = d3.geoPath().centroid(feat)
+        coord = centroid.join(",")
       }
 
       const query = `
@@ -52,9 +63,9 @@ const insertData = async () => {
 
       try {
         await client.query(query, values)
-        console.log(`Inserted ${properties.name}`);
+        console.log(`Inserted ${properties.name} for ${creator} ${type}`)
       } catch (err) {
-        console.error(`Error inserting ${properties.name}:`, err);
+        console.error(`Error inserting ${properties.name}:`, err)
       }
     }
   }
