@@ -17,23 +17,23 @@ const insertData = async () => {
     const [first, ...rest] = key.split(/(?=[A-Z])/)
     const [creator, type] = [first, rest.join('')]
 
-    for (const obj of value.objects.collection.geometries) {
-      const { properties, coordinates } = obj
-      let coord = "complex"
+    // convert to geojson since d3 prefers it
+    const geojson = feature(value, value.objects.collection)
 
-      if (coordinates) {
+    for (const feat of Object.values(geojson.features)) {
+      const { properties, geometry } = feat
+      let coord = "complex"
+      // console.log("obj", geometry)
+
+
+      if (geometry.type === "Point") {
         // Point location
-        coord = coordinates.join(",")
+        coord = geometry.coordinates.join(",")
       } else {
         // Compute centroid for Polygon
-        const geojson = feature(value, value.objects.collection)
-        const feat = geojson.features.find(poly =>
-          poly.properties.name === properties.name
-        )
         const centroid = d3.geoPath().centroid(feat)
         coord = centroid.join(",")
       }
-
       const query = `
         INSERT INTO "Location" (
           name, description, city, type, coordinates, faction, source, "userId", published,

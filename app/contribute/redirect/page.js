@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation"
 import db from "@/lib/db"
 
-export default async function RedirectPage({ params, searchParams }) {
-  const { name, map } = searchParams
+export default async function RedirectPage({ searchParams }) {
   const location = await db.location.findFirst({
     where: {
-      name,
-      map,
+      id: searchParams.id,
     },
   })
   const [baseMap, variant] = map.split("-")

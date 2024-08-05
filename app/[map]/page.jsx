@@ -104,7 +104,6 @@ export default function WaitForScreen() {
       height={screen.height}
       crosshairEnabled={urlParams.get("c")}
       geojson={geojson}
-      creator={creator}
     />
   )
 }
@@ -154,7 +153,7 @@ function getResizeOffsets(width, height) {
   }
 }
 
-function Map({ width, height, crosshairEnabled, geojson, creator }) {
+function Map({ width, height, crosshairEnabled, geojson }) {
   const svgRef = useRef(null)
   const gRef = useRef(null)
   const pointRef = useRef(null)
@@ -651,7 +650,7 @@ function Map({ width, height, crosshairEnabled, geojson, creator }) {
     <>
       <Tooltip {...tooltip} />
 
-      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} creator={creator} />
+      <Sheet {...drawerContent} setDrawerOpen={setDrawerOpen} drawerOpen={drawerOpen} />
 
       <div style={{ position: 'absolute', top: '10vh', left: '10px', backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '8px' }}>
         <button onClick={() => setShowControls(!showControls)} className='p-1 m-1'>
